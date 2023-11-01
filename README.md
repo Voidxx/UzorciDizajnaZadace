@@ -1,2 +1,1 @@
-# UzorciDizajnaZadace
-# UzorciDizajnaZadace
+
