@@ -5,11 +5,10 @@ import java.util.List;
 
 import paket.Paket;
 import paket.VrstaPaketa;
-import vozilo.Vozilo;
 
 public class UredZaPrijem {
 	private static UredZaPrijem instance = null;
-	private List<VrstaPaketa> vrstePaketa = null;
+	private List<VrstaPaketa> vrstePaketa = new ArrayList<VrstaPaketa>();
 	private List<Paket> ocekivaniPaketi = new ArrayList<Paket>();
 	private List<Paket> paketiSpremniZaDostavu = new ArrayList<Paket>();
 	private double ukupniIznosOdSvihDostava = 0;
@@ -85,4 +84,13 @@ public class UredZaPrijem {
     	this.paketiSpremniZaDostavu.remove(paket);
     }
     
+    
+    public VrstaPaketa getVrstaPaketa(String vrsta) {
+    	   for (VrstaPaketa vrstaPaketa : vrstePaketa) {
+    	       if (vrstaPaketa.getOznaka().equals(vrsta)) {
+    	           return vrstaPaketa;
+    	       }
+    	   }
+    	   return null;
+    	}
 }

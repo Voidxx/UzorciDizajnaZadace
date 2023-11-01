@@ -1,6 +1,5 @@
 package citaci;
 
-import java.text.ParseException;
 
 import paket.Paket;
 

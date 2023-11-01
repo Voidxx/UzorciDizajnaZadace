@@ -17,7 +17,8 @@ public abstract class CsvReader<T extends CsvObjekt> {
             while ((line = br.readLine()) != null) {
                 T object = createObject();
                 object.process(line);
-                objects.add(object);
+                if(object.imaVrijednosti())
+                	objects.add(object);
             }
         }
         return objects;

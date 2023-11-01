@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
-import citaci.CsvUtils;
+import tvrtka.UredZaPrijem;
 
 public class Paket implements CsvObjekt{
     private String oznaka;
@@ -146,6 +146,10 @@ public class Paket implements CsvObjekt{
 		this.vrijeme_preuzimanja = vrijeme_preuzimanja;
 	}
 	
+	public boolean imaVrijednosti() {
+		   return oznaka != null;
+		}
+	
 	private void validate(String linija) throws ParseException {
 		   String[] vrijednosti = linija.split(";");
 
@@ -167,8 +171,40 @@ public class Paket implements CsvObjekt{
 		       }
 		   }
 
-		   if (!Arrays.asList("S", "H", "P").contains(vrijednosti[9])) {
+		   if (!Arrays.asList("S", "H", "P", "R").contains(vrijednosti[9])) {
 		       throw new ParseException("Nevažeća 'usluga_dostave': " + vrijednosti[9], 0);
+		   }
+		   
+
+		   
+		   VrstaPaketa vrstaPaketa = UredZaPrijem.getInstance().getVrstaPaketa(vrijednosti[4]);
+		   if (vrstaPaketa != null) {
+		   double maxTezina = vrstaPaketa.getMax_tezina();
+		   if (Double.parseDouble(vrijednosti[8].replace(",", ".")) > maxTezina) {	
+		       throw new ParseException("Vrijednost tezine premašuje maksimalnu vrijednost za vrstu paketa '" + vrstaPaketa.getOznaka() + "'.", 0);
+		   	}		   
+		   }
+		   if (vrijednosti[4].equals("X")) {
+		       VrstaPaketa vrstaPaketaX = UredZaPrijem.getInstance().getVrstaPaketa("X");
+		       if (vrstaPaketaX != null) {
+		           double maxSirina = vrstaPaketaX.getSirina();
+		           double maxDuzina = vrstaPaketaX.getDuzina();
+		           double maxVisina = vrstaPaketaX.getVisina();
+
+		           if (Double.parseDouble(vrijednosti[6].replace(",", ".")) > maxSirina || Double.parseDouble(vrijednosti[7].replace(",", ".")) > maxDuzina || Double.parseDouble(vrijednosti[5].replace(",", ".")) > maxVisina) {
+		               throw new ParseException("Vrijednosti sirine, duzine ili visine premašuju maksimalne vrijednosti za vrstu paketa 'X'.", 0);
+		           }
+		       }
+		   }
+
+		   if(!vrijednosti[9].equals("P") && Double.parseDouble(vrijednosti[10].replace(",", ".")) != 0) {
+			   throw new ParseException("Ne može se odrediti iznos pouzeća za uslugu dostave koja nije P!", 0);
+		   }
+		   
+		   if(vrijednosti[4].equals("X")) {
+			   if(Double.parseDouble(vrijednosti[5].replace(",", ".")) != 0 || Double.parseDouble(vrijednosti[6].replace(",", ".")) != 0 || Double.parseDouble(vrijednosti[7].replace(",", ".")) != 0) {
+				   throw new ParseException("Vrijednosti visine, sirine i duzine kod tipskih paketa su predodređene i nemogu se mijenjati.", 0);
+			   }
 		   }
 
 		   SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy. HH:mm:ss");

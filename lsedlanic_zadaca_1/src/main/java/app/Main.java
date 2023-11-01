@@ -1,11 +1,7 @@
 package app;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
-import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -15,21 +11,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.text.StyledEditorKit.ForegroundAction;
-
 import citaci.ConcreteVrstaPaketaCreator;
 import citaci.ConcretePaketCreator;
 import citaci.ConcreteVoziloCreator;
-import citaci.CsvReader;
-
-import java.text.NumberFormat;
 
 import paket.Paket;
 import paket.VrstaPaketa;
@@ -59,28 +49,20 @@ public class Main {
     	    return;
     	}
     	String[] argumenti = input.split("--");
-        odrediUlazneVarijable(argumenti);
-    
-
+        odrediUlazneVarijable(argumenti);    
+        
         List<VrstaPaketa> vrstePaketa = new ConcreteVrstaPaketaCreator().readCsv(vp);
+        UredZaPrijem.getInstance().postaviVrstePaketa(vrstePaketa);
         List<Vozilo> vozila = new ConcreteVoziloCreator().readCsv(pv);
+        UredZaDostavu.getInstance().postaviVozila(vozila);
         List<Paket> paketi = new ConcretePaketCreator().readCsv(pp);
-        
-        Tvrtka tvrtka = Tvrtka.getInstance();
-        UredZaPrijem uredZaPrijem = tvrtka.getUredZaPrijem();
-        UredZaDostavu uredZaDostavu = tvrtka.getUredZaDostavu();
-        
-        uredZaDostavu.postaviVozila(vozila);
-        uredZaPrijem.postaviVrstePaketa(vrstePaketa);
-        uredZaPrijem.postaviOcekivanePakete(paketi);
-
+        UredZaPrijem.getInstance().postaviOcekivanePakete(paketi);
 
         VirtualnoVrijeme.getInstance();
         VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
         
         Scanner scanner = new Scanner(System.in);
         String unos;
-
         while (true) {
             System.out.println("Unesite komandu:");
             unos = scanner.nextLine().toUpperCase();
@@ -88,9 +70,9 @@ public class Main {
                 System.out.println("Izlazim iz programa...");
                 break;
             } else if (unos.startsWith("IP")) {
-                hendlajIPKomandu(uredZaPrijem, uredZaDostavu);
+                hendlajIPKomandu();
             } else if (unos.startsWith("VR")) {
-                hendlajVRKomandu(uredZaDostavu, unos);        
+                hendlajVRKomandu(unos);        
             } else {
                 System.out.println("Nevažeća komanda");
             }
@@ -100,7 +82,7 @@ public class Main {
 
 
 
-	private static void hendlajVRKomandu(UredZaDostavu uredZaDostavu, String unos) {
+	private static void hendlajVRKomandu(String unos) {
 		System.out.println("VR komanda dobivena");
 		// Handle VR command
 		String[] parts = unos.split(" ");
@@ -132,45 +114,16 @@ public class Main {
 		                	int sekundiDoPunogSata = 3600 - (vrijemePrije.getMinute() * 60);
 		                	int preostaleSekundeNakonPunogSata = vrijemeNakon.getMinute() * 60;
 		                	
-		                	provjeriHoceLiBitiDostavljenPaket(uredZaDostavu, sekundiDoPunogSata);
-		                	vrijemePrije = LocalDateTime.ofInstant(VirtualnoVrijeme.getVrijeme(), ZoneId.systemDefault());
-		                	vrijemeNakon = vrijemePrije.plusSeconds(sekundiDoPunogSata);
-		                	System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
-		                	provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
-		                	VirtualnoVrijeme.nadodajVrijeme(sekundiDoPunogSata);
-		                	provjeriTrebajuLiKrenutiVozila(uredZaDostavu);
-		                	
-		                	  
-		                	provjeriHoceLiBitiDostavljenPaket(uredZaDostavu, preostaleSekundeNakonPunogSata);
-		                	vrijemePrije = LocalDateTime.ofInstant(VirtualnoVrijeme.getVrijeme(), ZoneId.systemDefault());
-		                	vrijemeNakon = vrijemePrije.plusSeconds(preostaleSekundeNakonPunogSata);
-		                	System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
-		                	provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
-		                    VirtualnoVrijeme.nadodajVrijeme(preostaleSekundeNakonPunogSata);
+		                	provjeriPakete(sekundiDoPunogSata);		                	
+		                	provjeriTrebajuLiKrenutiVozila();
+		                	provjeriPakete(preostaleSekundeNakonPunogSata);
 		                    
 		                } else {
-		                	provjeriHoceLiBitiDostavljenPaket(uredZaDostavu, ms);
+		                	provjeriHoceLiBitiDostavljenPaket(ms);
 		                	System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
 		                	provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
 		                	VirtualnoVrijeme.nadodajVrijeme(ms);
 		                }
-//		                
-//		                if (vrijemeNakon.getMinute() < vrijemePrije.getMinute()) {
-//		                	int sekundiDoPunogSata = 3600 - (vrijemePrije.getMinute() * 60);
-//		                	provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
-//		                	provjeriHoceLiBitiDostavljenPaket(uredZaDostavu, sekundiDoPunogSata);
-//		                	
-//		                	VirtualnoVrijeme.nadodajVrijeme(sekundiDoPunogSata);
-//		                	provjeriTrebajuLiKrenutiVozila(uredZaDostavu);
-//		                	
-//		                    int preostaleSekundeNakonPunogSata = vrijemeNakon.getMinute() * 60;
-//		                    provjeriHoceLiBitiDostavljenPaket(uredZaDostavu, preostaleSekundeNakonPunogSata);
-//		                    VirtualnoVrijeme.nadodajVrijeme(preostaleSekundeNakonPunogSata);
-//		                    
-//		                } else {
-//		                	VirtualnoVrijeme.nadodajVrijeme(ms);
-//		                	provjeriHoceLiBitiDostavljenPaket(uredZaDostavu, ms);
-//		                }
 		                }
 		            } catch (InterruptedException e) {
 		                e.printStackTrace();
@@ -184,17 +137,30 @@ public class Main {
 
 
 
-	private static void hendlajIPKomandu(UredZaPrijem uredZaPrijem, UredZaDostavu uredZaDostavu) {
+	private static void provjeriPakete(int sekundiDoPunogSata) {
+		LocalDateTime vrijemePrije;
+		LocalDateTime vrijemeNakon;
+		provjeriHoceLiBitiDostavljenPaket(sekundiDoPunogSata);
+		vrijemePrije = LocalDateTime.ofInstant(VirtualnoVrijeme.getVrijeme(), ZoneId.systemDefault());
+		vrijemeNakon = vrijemePrije.plusSeconds(sekundiDoPunogSata);
+		System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
+		provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
+		VirtualnoVrijeme.nadodajVrijeme(sekundiDoPunogSata);
+	}
+
+
+
+	private static void hendlajIPKomandu() {
 		System.out.println("IP komanda dobivena");
 
 		System.out.printf("%-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", "Vrijeme prijema", "Vrsta paketa", "Vrsta usluge", "Status isporuke", "Vrijeme preuzimanja", "Iznos dostave", "Iznos pouzeća");
 
-		for (Paket paket : uredZaDostavu.getDostavljeniPaketi()) {
+		for (Paket paket : UredZaDostavu.getInstance().getDostavljeniPaketi()) {
 			
 		    System.out.printf("%-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", paket.getVrijeme_prijema(), paket.getVrsta_paketa(), paket.getUsluga_dostave(), "Dostavljeno", paket.getVrijeme_preuzimanja(), paket.getIzracunati_iznos_dostave(), paket.getIznos_pouzeca());
 		}
-		Set<Paket> dostavljeniPaketiSet = new HashSet<>(uredZaDostavu.getDostavljeniPaketi());
-		List<Paket> ocekivaniPaketi = uredZaPrijem.dobaviListuOcekivanihPaketa();
+		Set<Paket> dostavljeniPaketiSet = new HashSet<>(UredZaDostavu.getInstance().getDostavljeniPaketi());
+		List<Paket> ocekivaniPaketi = UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa();
 		ocekivaniPaketi.removeIf(dostavljeniPaketiSet::contains);
 
 		for (Paket paket : ocekivaniPaketi) {
@@ -263,8 +229,8 @@ public class Main {
     
 
     
-    private static void provjeriHoceLiBitiDostavljenPaket(UredZaDostavu uredZaDostavu, int sekunde) {
-    	for(Vozilo vozilo : uredZaDostavu.dohvatiListuVozila()) {
+    private static void provjeriHoceLiBitiDostavljenPaket(int sekunde) {
+    	for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
     		if(vozilo.isTrenutno_vozi() == true) {
 
 	    			Instant prijasnjeVrijeme = vozilo.getVrijeme();
@@ -273,15 +239,15 @@ public class Main {
 	                Instant vrijemeNakon = prijasnjeVrijeme.plusSeconds(sekunde);
 	                if(vrijemeDostave.isBefore(vrijemeNakon) || vrijemeDostave.equals(vrijemeNakon)) {
 	                	vozilo.azurirajDostavu(vi);
-	                }
 	            }
+	        }
     	}
 	}
 
 
 
-	private static void provjeriTrebajuLiKrenutiVozila(UredZaDostavu uredZaDostavu) {
-		for(Vozilo vozilo : uredZaDostavu.dohvatiListuVozila()) {
+	private static void provjeriTrebajuLiKrenutiVozila() {
+		for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
 			if((vozilo.getTrenutni_teret_tezina() >= vozilo.getKapacitet_kg() / 2) || (vozilo.getTrenutni_teret_volumen() >= vozilo.getKapacitet_m3() / 2) || vozilo.getUkrcani_paketi().stream().anyMatch(paket -> paket.getUsluga_dostave().equals("H") && !vozilo.isTrenutno_vozi())) {
 				vozilo.setTrenutno_vozi(true);
 				System.out.println("Vozilo: " + vozilo.getOpis() + " Kreće u dostavu!");
@@ -292,32 +258,27 @@ public class Main {
 
 
 
-	private static void provjeriDaLiJePotrebnoUkrcatiPakete(LocalDateTime prije, LocalDateTime poslije) {	
-    	
-        Tvrtka tvrtka = Tvrtka.getInstance();
-        UredZaPrijem uredZaPrijem = tvrtka.getUredZaPrijem();
-        UredZaDostavu uredZaDostavu = tvrtka.getUredZaDostavu();
-        
-    	provjeriPrijemPaketa(prije, poslije, uredZaPrijem);    	
-    	ukrcajPakete(uredZaPrijem, uredZaDostavu);   	
+	private static void provjeriDaLiJePotrebnoUkrcatiPakete(LocalDateTime prije, LocalDateTime poslije) {	      
+    	provjeriPrijemPaketa(prije, poslije);    	
+    	ukrcajPakete();   	
     }
 
 
 
-	private static void provjeriPrijemPaketa(LocalDateTime prije, LocalDateTime poslije, UredZaPrijem uredZaPrijem) {
-		for (Paket paket : uredZaPrijem.dobaviListuOcekivanihPaketa()) {
+	private static void provjeriPrijemPaketa(LocalDateTime prije, LocalDateTime poslije) {
+		for (Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
     		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
     		LocalDateTime dateTime = LocalDateTime.parse(paket.getVrijeme_prijema(), formatter);
     		if(dateTime.isBefore(poslije) && dateTime.isAfter(prije)) {
-    			uredZaPrijem.dodajPaketUSpremneZaDostavu(paket);
+    			UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
     		}
 		}
 	}
 
 
 
-	private static void ukrcajPakete(UredZaPrijem uredZaPrijem, UredZaDostavu uredZaDostavu) {
-	    Collections.sort(uredZaPrijem.dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
+	private static void ukrcajPakete() {
+	    Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
 	        @Override
 	        public int compare(Paket p1, Paket p2) {
 	            if (p1.getUsluga_dostave().equals("H") && !p2.getUsluga_dostave().equals("H")) {
@@ -330,18 +291,18 @@ public class Main {
 	        }
 	    });
 
-	    List<Vozilo> sortiranaVozila = uredZaDostavu.dohvatiListuVozila().stream()
+	    List<Vozilo> sortiranaVozila = UredZaDostavu.getInstance().dohvatiListuVozila().stream()
 	            .sorted(Comparator.comparing(Vozilo::getRedoslijed))
 	            .collect(Collectors.toList());
 	    for (Vozilo vozilo : sortiranaVozila) {
 	        if(vozilo.isTrenutno_vozi() == false) {
-	            List<Paket> paketiZaDostavu = new ArrayList<>(uredZaPrijem.dobaviListuPaketaZaDostavu());
+	            List<Paket> paketiZaDostavu = new ArrayList<>(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
 	            for (Paket paket : paketiZaDostavu) {
 	                double tezinaPaketa = paket.getTezina();
 	                double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
 	                if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getKapacitet_m3() <= vozilo.getKapacitet_m3())) {
 	                    vozilo.dodajPaketUVozilo(paket);
-	                    uredZaPrijem.dobaviListuPaketaZaDostavu().remove(paket);
+	                    UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
 	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + paket.getVrijeme_prijema());
 	                }
 	            }

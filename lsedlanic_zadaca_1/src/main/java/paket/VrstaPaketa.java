@@ -2,11 +2,8 @@ package paket;
 
 import java.text.ParseException;
 
-import javax.xml.crypto.dsig.dom.DOMValidateContext;
-
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
-import citaci.CsvUtils;
 import tvrtka.Tvrtka;
 
 public class VrstaPaketa implements CsvObjekt {
@@ -142,17 +139,16 @@ public class VrstaPaketa implements CsvObjekt {
 		       PogreskeBrojac.getInstance().dodajPogresku(e.getMessage(), linija);
 		       return;
 		   }
-		   
 		 String[] vrijednosti = linija.split(";");
          this.setOznaka(vrijednosti[0]);
          this.setOpis(vrijednosti[1]);
          this.setVisina(Double.parseDouble(vrijednosti[2].replace(",", ".")));
          this.setSirina(Double.parseDouble(vrijednosti[3].replace(",", ".")));
          this.setDuzina(Double.parseDouble(vrijednosti[4].replace(",", ".")));
-         if(vrijednosti[0] == "X")
+         if(vrijednosti[0].equals("X"))
         	 this.setMax_tezina(Tvrtka.getMt());
-         else 
-         this.setMax_tezina(Double.parseDouble(vrijednosti[6].replace(",", ".")));
+         else
+        	 this.setMax_tezina(Double.parseDouble(vrijednosti[6].replace(",", ".")));
          this.setCijena(Double.parseDouble(vrijednosti[6].replace(",", ".")));
          this.setCijena_hitno(Double.parseDouble(vrijednosti[7].replace(",", ".")));
          this.setCijenaP(Double.parseDouble(vrijednosti[8].replace(",", ".")));
@@ -161,6 +157,10 @@ public class VrstaPaketa implements CsvObjekt {
 
 		
 	}
+	
+	public boolean imaVrijednosti() {
+		   return oznaka != null;
+		}
 	
 	private void validate(String linija) throws ParseException {
 		   String[] vrijednosti = linija.split(";");

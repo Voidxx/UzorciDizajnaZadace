@@ -1,6 +1,5 @@
 package vozilo;
 
-import java.awt.Label;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.Duration;
@@ -15,9 +14,9 @@ import java.util.Locale;
 import app.PogreskeBrojac;
 import app.VirtualnoVrijeme;
 import citaci.CsvObjekt;
-import citaci.CsvUtils;
 import paket.Paket;
 import tvrtka.UredZaDostavu;
+import tvrtka.UredZaPrijem;
 
 public class Vozilo implements CsvObjekt {
     private String registracija;
@@ -101,6 +100,10 @@ public class Vozilo implements CsvObjekt {
 		
 	}
 	
+	public boolean imaVrijednosti() {
+		   return registracija != null;
+		}
+	
 	
 	private void validate(String linija) throws ParseException {
 		   String[] vrijednosti = linija.split(";");
@@ -181,20 +184,20 @@ public class Vozilo implements CsvObjekt {
 	}
 	
     public Instant getVrijeme() {
-        Instant now = this.dostavaSat.instant();
-        return now;
+        Instant sada = this.dostavaSat.instant();
+        return sada;
     }
 	
     public String getVrijemeDostaveDateTime() {
     	
     	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
-    	Instant now = dostavaSat.instant();
+    	Instant sada = dostavaSat.instant();
 
-    	ZonedDateTime zonedDateTime = now.atZone(ZoneId.systemDefault());
+    	ZonedDateTime zonedDateTime = sada.atZone(ZoneId.systemDefault());
     	LocalDateTime localDateTime = zonedDateTime.toLocalDateTime();
 
-    	String formattedDateTime = localDateTime.format(formatter);
-        return formattedDateTime;
+    	String formatiraniDateTime = localDateTime.format(formatter);
+        return formatiraniDateTime;
     }
     
     public void azurirajDostavu(int vi) {
@@ -216,6 +219,8 @@ public class Vozilo implements CsvObjekt {
     	                  System.out.println("Vozilo: " + this.opis + " je dostavilo paket: " + this.ukrcani_paketi.get(0).getOznaka() + " Na vrijeme sata: " + formatiraniDateTime);
     	                  this.ukrcani_paketi.get(0).setVrijeme_preuzimanja(this.getVrijemeDostaveDateTime());
     	                  UredZaDostavu.getInstance().dodajDostavljeniPaket(this.ukrcani_paketi.get(0));
+    	                  UredZaPrijem.getInstance().nadodajNaUkupniIznosDostavu(this.ukrcani_paketi.get(0).getIznos_pouzeca());
+    	                  this.prikupljeniNovac = this.prikupljeniNovac + this.ukrcani_paketi.get(0).getIznos_pouzeca();
     	                  this.ukrcani_paketi.remove(0);
     	               }
     	               else {
