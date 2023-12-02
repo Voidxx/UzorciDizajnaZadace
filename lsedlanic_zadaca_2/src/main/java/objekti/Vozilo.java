@@ -14,6 +14,7 @@ import java.util.Locale;
 import app.PogreskeBrojac;
 import app.VirtualnoVrijeme;
 import citaci.CsvObjekt;
+import stanjaVozila.Stanje;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
 
@@ -32,6 +33,9 @@ public class Vozilo implements CsvObjekt {
     private int prosjecnaBrzina;
     private String status;
     private int[] podrucjaPoRangu;
+    private Stanje state;
+
+
     
 
 
@@ -61,7 +65,21 @@ public class Vozilo implements CsvObjekt {
 	}
 
 	
+    public void setState(Stanje state) {
+        this.state = state;
+    }
 
+    public void loadPackage() {
+        state.ukrcajPakete(this);
+    }
+
+    public void deliverPackage() {
+        state.dostaviPakete(this);
+    }
+
+    public void returnToOffice() {
+        state.vratiSeUUred(this);
+    }
 	public int getProsjecnaBrzina() {
 		return prosjecnaBrzina;
 	}

@@ -18,6 +18,7 @@ objekti/Vozilo.class
 citaci/CsvLoader.class
 objekti/VrstaPaketa.class
 objekti/Podrucje.class
+objekti/DioPodrucja.class
 citaci/CsvObjekt.class
 tvrtka/UredZaPrijem.class
 citaci/PaketLoader.class

@@ -10,8 +10,8 @@ import tvrtka.Tvrtka;
 public class Mjesto implements CsvObjekt, DioPodrucja{
 	private int id;
 	private String naziv;
-	private ArrayList<Integer> uliceUBrojevima;
-	private ArrayList<Ulica> ulice;
+	private ArrayList<Integer> uliceUBrojevima = new ArrayList<Integer>();
+	private ArrayList<Ulica> ulice = new ArrayList<Ulica>() ;
 
 	
 	
@@ -58,23 +58,20 @@ public class Mjesto implements CsvObjekt, DioPodrucja{
 		ArrayList<Integer> ulice = new ArrayList<Integer>();
 		for(String string: uliceString) {
 			ulice.add(Integer.parseInt(string));
-		}
-		for(Ulica ulica : Tvrtka.getInstance().getUlice()) {
-			for(Integer idUlice: ulice) {
-				if(idUlice == ulica.getId()) {
+			for(Ulica ulica : Tvrtka.getInstance().getUlice()) {
+				if(Integer.parseInt(string) == ulica.getId()) {
 					this.add(ulica);
 				}
-			}
+			}	
 		}
-		this.setUlice(getUlice());
+		this.setUlice(ulice);
 		
 		
 	}
 
 	@Override
 	public boolean imaVrijednosti() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.id != 0 && this.naziv != null && !this.naziv.isEmpty() && this.ulice != null && !this.ulice.isEmpty();
 	}
 	
 	private void validate(String linija) throws ParseException {
@@ -146,5 +143,14 @@ public class Mjesto implements CsvObjekt, DioPodrucja{
 	 public int getNumChildren() {
 	   return ulice.size();
 	 }
-
+	 @Override
+	 public String toString() {
+	    return "Mjesto{" +
+	        "id=" + id +
+	        ", naziv='" + naziv + '\'' +
+	        ", uliceUBrojevima=" + uliceUBrojevima +
+	        ", ulice=" + ulice +
+	        '}';
+	 }
+	 
 }

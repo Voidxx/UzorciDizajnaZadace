@@ -22,7 +22,10 @@ import citaci.CitacTxt;
 import citaci.CsvLoader;
 import citaci.CsvLoaderFactory;
 import objekti.Mjesto;
+import objekti.Osoba;
 import objekti.Paket;
+import objekti.Podrucje;
+import objekti.Ulica;
 import objekti.Vozilo;
 import objekti.VrstaPaketa;
 import tvrtka.Tvrtka;
@@ -38,6 +41,7 @@ public class Main {
 	static String kr = null;
 	static int mt = 0;
 	static int vi = 0;
+	static String pmu = null;
 	static String pv = null;
 	static String vp = null;
 	static String pp = null;
@@ -65,10 +69,18 @@ public class Main {
         CsvLoader<Paket> paketLoader = (CsvLoader<Paket>) CsvLoaderFactory.getLoader("paketi");
         List<Paket> paketi = paketLoader.loadCsv(pp);
         UredZaPrijem.getInstance().postaviOcekivanePakete(paketi);
+        CsvLoader<Ulica> uliceLoader = (CsvLoader<Ulica>) CsvLoaderFactory.getLoader("ulice");
+        List<Ulica> ulice = uliceLoader.loadCsv(pu);
+        Tvrtka.getInstance().setUlice(ulice);
         CsvLoader<Mjesto> mjestaLoader = (CsvLoader<Mjesto>) CsvLoaderFactory.getLoader("mjesta");
         List<Mjesto> mjesta = mjestaLoader.loadCsv(pm);
         Tvrtka.getInstance().setMjesta(mjesta);
-        System.out.println(mjesta);
+        CsvLoader<Osoba> osobeLoader = (CsvLoader<Osoba>) CsvLoaderFactory.getLoader("osobe");
+        List<Osoba> osobe = osobeLoader.loadCsv(po);
+        Tvrtka.getInstance().setOsobe(osobe);
+        CsvLoader<Podrucje> podrucjaLoader = (CsvLoader<Podrucje>) CsvLoaderFactory.getLoader("podrucja");
+        List<Podrucje> podrucja = podrucjaLoader.loadCsv(pmu);
+        Tvrtka.getInstance().setPodrucja(podrucja);
 
         VirtualnoVrijeme.getInstance();
         VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
@@ -212,6 +224,8 @@ public class Main {
 	       tvrtka.setPm(pm);
 	       po = parametri.getProperty("po");
 	       tvrtka.setPo(po);
+	       pmu = parametri.getProperty("pmu");
+	       tvrtka.setPmu(pmu);
 	       gps = parametri.getProperty("gps");
 	       tvrtka.setGps(gps);
 	       isporuka = Integer.parseInt(parametri.getProperty("isporuka"));

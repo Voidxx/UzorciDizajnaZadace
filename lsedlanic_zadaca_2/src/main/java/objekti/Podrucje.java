@@ -42,7 +42,7 @@ public class Podrucje implements CsvObjekt, DioPodrucja{
 
 	  @Override
 	  public void process(String linija) throws ParseException {
-	      // validation
+	      // potrebna validacija
 	      String[] vrijednosti = linija.split(";");
 	      this.setId(Integer.parseInt(vrijednosti[0]));
 	      String[] paroviSaDvotockom = vrijednosti[1].split(",");

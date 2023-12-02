@@ -22,6 +22,7 @@ public class Tvrtka {
 	String pu = null;
 	String pm = null;
 	String po = null;
+	String pmu = null;
 	String gps = null;
 	int isporuka = 0;
 	private List<Ulica> ulice = new ArrayList<Ulica>();
@@ -31,7 +32,15 @@ public class Tvrtka {
 	
 	
 
-    public List<Ulica> getUlice() {
+    public String getPmu() {
+		return pmu;
+	}
+
+	public void setPmu(String pmu) {
+		this.pmu = pmu;
+	}
+
+	public List<Ulica> getUlice() {
 		return ulice;
 	}
 

@@ -2,6 +2,7 @@ package objekti;
 
 import java.text.ParseException;
 
+import app.PogreskeBrojac;
 import citaci.CsvObjekt;
 
 public class Ulica implements CsvObjekt, DioPodrucja{
@@ -31,7 +32,13 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 
 	@Override
 	public void process(String linija) throws ParseException {
-		//potrebna validacija
+		 try {
+		     validate(linija);
+		 } catch (ParseException e) {
+		     PogreskeBrojac.getInstance().dodajPogresku(e.getMessage(), linija);
+		     return;
+		 }
+		 //potrebna dodatna validacjia
 		String[] vrijednosti = linija.split(";");
 		
 		this.setId(Integer.parseInt(vrijednosti[0]));
@@ -49,6 +56,23 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 		return id != 0;
 	}
 
+	
+	private void validate(String linija) throws ParseException {
+		   String[] vrijednosti = linija.split(";");
+
+		   if (vrijednosti.length != 7) {
+		       throw new ParseException("Redak sadrži " + vrijednosti.length + " vrijednosti, ali se očekuje 7 vrijednosti.", 0);
+		   }
+
+
+
+		   for (int i = 0; i < 2; i++) {
+		       if (vrijednosti[i].trim().isEmpty()) {
+		           throw new ParseException("Nepostojeće polje na indeksu:  " + i, 0);
+		       }
+		   }
+
+	}
 
 
 	public int getId() {
