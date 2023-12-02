@@ -7,7 +7,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import paket.VrstaPaketa;
+import objekti.VrstaPaketa;
 
 public class VrstaPaketaLoader implements CsvLoader<VrstaPaketa>{
 	   @Override

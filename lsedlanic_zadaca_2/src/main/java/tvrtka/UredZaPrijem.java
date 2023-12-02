@@ -3,8 +3,8 @@ package tvrtka;
 import java.util.ArrayList;
 import java.util.List;
 
-import paket.Paket;
-import paket.VrstaPaketa;
+import objekti.Paket;
+import objekti.VrstaPaketa;
 
 public class UredZaPrijem {
 	private static UredZaPrijem instance = null;

@@ -7,8 +7,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import paket.Paket;
-import vozilo.Vozilo;
+import objekti.Paket;
+import objekti.Vozilo;
 
 public class VoziloLoader implements CsvLoader<Vozilo> {
 	   @Override
@@ -18,7 +18,7 @@ public class VoziloLoader implements CsvLoader<Vozilo> {
 	           br.readLine();
 	           String line;
 	           while ((line = br.readLine()) != null) {
-	               Vozilo vozilo = new Vozilo(null, null, 0, 0, 0, 0, new ArrayList<Paket>(), 0, false, null, 0);
+	               Vozilo vozilo = new Vozilo(line, line, 0, 0, 0, 0, new ArrayList<Paket>(), 0, false, null, 0, 0, line, null);
 	               vozilo.process(line);
 	               if(vozilo.imaVrijednosti())
 	                  vozila.add(vozilo);

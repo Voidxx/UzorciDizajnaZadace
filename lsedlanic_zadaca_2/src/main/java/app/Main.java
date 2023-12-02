@@ -21,12 +21,13 @@ import java.util.stream.Collectors;
 import citaci.CitacTxt;
 import citaci.CsvLoader;
 import citaci.CsvLoaderFactory;
-import paket.Paket;
-import paket.VrstaPaketa;
+import objekti.Mjesto;
+import objekti.Paket;
+import objekti.Vozilo;
+import objekti.VrstaPaketa;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
-import vozilo.Vozilo;
 
 
 
@@ -55,15 +56,19 @@ public class Main {
         
         odrediUlazneVarijable(parametri);
         
-        CsvLoader<VrstaPaketa> vrstePaketaLoader = (CsvLoader<VrstaPaketa>) CsvLoaderFactory.getLoader("vrstaPaketa");
+        CsvLoader<VrstaPaketa> vrstePaketaLoader = (CsvLoader<VrstaPaketa>) CsvLoaderFactory.getLoader("vrstePaketa");
         List<VrstaPaketa> vrstePaketa = vrstePaketaLoader.loadCsv(vp);
         UredZaPrijem.getInstance().postaviVrstePaketa(vrstePaketa);
-        CsvLoader<Vozilo> voziloLoader = (CsvLoader<Vozilo>) CsvLoaderFactory.getLoader("vozilo");
+        CsvLoader<Vozilo> voziloLoader = (CsvLoader<Vozilo>) CsvLoaderFactory.getLoader("vozila");
         List<Vozilo> vozila = voziloLoader.loadCsv(pv);
         UredZaDostavu.getInstance().postaviVozila(vozila);
-        CsvLoader<Paket> paketLoader = (CsvLoader<Paket>) CsvLoaderFactory.getLoader("paket");
+        CsvLoader<Paket> paketLoader = (CsvLoader<Paket>) CsvLoaderFactory.getLoader("paketi");
         List<Paket> paketi = paketLoader.loadCsv(pp);
         UredZaPrijem.getInstance().postaviOcekivanePakete(paketi);
+        CsvLoader<Mjesto> mjestaLoader = (CsvLoader<Mjesto>) CsvLoaderFactory.getLoader("mjesta");
+        List<Mjesto> mjesta = mjestaLoader.loadCsv(pm);
+        Tvrtka.getInstance().setMjesta(mjesta);
+        System.out.println(mjesta);
 
         VirtualnoVrijeme.getInstance();
         VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
@@ -232,10 +237,12 @@ public class Main {
 	private static void provjeriTrebajuLiKrenutiVozila() {
 		for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
 			if(!vozilo.isTrenutno_vozi()) {
-				if((vozilo.getTrenutni_teret_tezina() >= vozilo.getKapacitet_kg() / 2) || (vozilo.getTrenutni_teret_volumen() >= vozilo.getKapacitet_m3() / 2) || (vozilo.getUkrcani_paketi().stream().anyMatch(paket -> paket.getUsluga_dostave().equals("H")))) {
+				if((vozilo.getTrenutni_teret_tezina() >= vozilo.getKapacitet_kg() / 2) || (vozilo.getTrenutni_teret_volumen() >= vozilo.getKapacitet_m3() / 2)  && vozilo.getUkrcani_paketi() != null) {
+					if(vozilo.getUkrcani_paketi().stream().anyMatch(paket -> paket.getUsluga_dostave().equals("H"))) {
 					vozilo.setTrenutno_vozi(true);
 					System.out.println("Vozilo: " + vozilo.getOpis() + " Kreće u dostavu!");
 					vozilo.setDostavaSat(VirtualnoVrijeme.getSat());
+					}
 				}
 			}
 		}

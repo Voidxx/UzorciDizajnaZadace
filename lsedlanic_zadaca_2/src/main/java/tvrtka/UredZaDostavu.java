@@ -3,13 +3,14 @@ package tvrtka;
 import java.util.ArrayList;
 import java.util.List;
 
-import paket.Paket;
-import vozilo.Vozilo;
+import objekti.Paket;
+import objekti.Vozilo;
 
 public class UredZaDostavu {
 	private static UredZaDostavu instance = null;
 	private List<Vozilo> listaVozila = null;
 	private List<Paket> dostavljeniPaketi = new ArrayList<Paket>();
+
 	
     private UredZaDostavu() {
 

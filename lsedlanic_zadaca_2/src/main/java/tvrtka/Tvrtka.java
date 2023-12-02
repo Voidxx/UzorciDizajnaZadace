@@ -1,5 +1,13 @@
 package tvrtka;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import objekti.Mjesto;
+import objekti.Osoba;
+import objekti.Podrucje;
+import objekti.Ulica;
+
 public class Tvrtka {
     private static Tvrtka instance = null;
 	String vs = null;
@@ -16,9 +24,46 @@ public class Tvrtka {
 	String po = null;
 	String gps = null;
 	int isporuka = 0;
+	private List<Ulica> ulice = new ArrayList<Ulica>();
+	private List<Osoba> osobe = new ArrayList<Osoba>();
+	private List<Podrucje> podrucja = new ArrayList<Podrucje>();
+	private List<Mjesto> mjesta = new ArrayList<Mjesto>();
+	
 	
 
-    public String getPu() {
+    public List<Ulica> getUlice() {
+		return ulice;
+	}
+
+	public void setUlice(List<Ulica> ulice) {
+		this.ulice = ulice;
+	}
+
+	public List<Osoba> getOsobe() {
+		return osobe;
+	}
+
+	public void setOsobe(List<Osoba> osobe) {
+		this.osobe = osobe;
+	}
+
+	public List<Podrucje> getPodrucja() {
+		return podrucja;
+	}
+
+	public void setPodrucja(List<Podrucje> podrucja) {
+		this.podrucja = podrucja;
+	}
+
+	public List<Mjesto> getMjesta() {
+		return mjesta;
+	}
+
+	public void setMjesta(List<Mjesto> mjesta) {
+		this.mjesta = mjesta;
+	}
+
+	public String getPu() {
 		return pu;
 	}
 

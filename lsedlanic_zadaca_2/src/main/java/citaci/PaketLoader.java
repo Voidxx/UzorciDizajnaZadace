@@ -7,7 +7,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import paket.Paket;
+import objekti.Paket;
 
 public class PaketLoader implements CsvLoader<Paket>{
 	   @Override

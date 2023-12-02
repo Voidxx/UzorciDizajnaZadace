@@ -7,9 +7,10 @@ public class CsvLoaderFactory {
 	   private static final Map<String, CsvLoader<?>> loaders = new HashMap<>();
 
 	   static {
-	       loaders.put("vozilo", new VoziloLoader());
-	       loaders.put("vrstaPaketa", new VrstaPaketaLoader());
-	       loaders.put("paket", new PaketLoader());
+	       loaders.put("vozila", new VoziloLoader());
+	       loaders.put("vrstePaketa", new VrstaPaketaLoader());
+	       loaders.put("paketi", new PaketLoader());
+	       loaders.put("mjesta", new MjestoLoader());
 	   }
 
 	   public static CsvLoader<?> getLoader(String tip) {
