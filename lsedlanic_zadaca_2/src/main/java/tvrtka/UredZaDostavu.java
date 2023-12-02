@@ -31,6 +31,14 @@ public class UredZaDostavu {
     public List<Vozilo> dohvatiListuVozila() {
     	return this.listaVozila;
     }
+    
+    public Vozilo dohvatiVozilo(String registracija) {
+    	   for(Vozilo vozilo : listaVozila) {
+    	       if(vozilo.getRegistracija().equals(registracija))
+    	           return vozilo;
+    	   }
+    	   return null;
+    	}
 
 	public List<Paket> getDostavljeniPaketi() {
 		return dostavljeniPaketi;

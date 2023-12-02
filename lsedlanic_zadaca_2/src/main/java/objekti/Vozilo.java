@@ -2,21 +2,23 @@ package objekti;
 
 import java.text.ParseException;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import app.PogreskeBrojac;
-import app.VirtualnoVrijeme;
 import citaci.CsvObjekt;
+import stanjaVozila.AktivnoVozilo;
+import stanjaVozila.NeaktivnoVozilo;
+import stanjaVozila.NeispravnoVozilo;
 import stanjaVozila.Stanje;
-import tvrtka.UredZaDostavu;
-import tvrtka.UredZaPrijem;
+import tvrtka.Tvrtka;
+import voznja.Voznja;
 
 public class Vozilo implements CsvObjekt {
     private String registracija;
@@ -34,14 +36,12 @@ public class Vozilo implements CsvObjekt {
     private String status;
     private int[] podrucjaPoRangu;
     private Stanje state;
-
+    private List<Voznja> obavljeneVoznje = new ArrayList<Voznja>();
 
     
 
 
 	
-	
-
 	
 	public Vozilo(String registracija, String opis, double kapacitet_kg, double kapacitet_m3,
 			double trenutni_teret_tezina, double trenutni_teret_volumen, List<Paket> ukrcani_paketi, int redoslijed,
@@ -65,20 +65,38 @@ public class Vozilo implements CsvObjekt {
 	}
 
 	
-    public void setState(Stanje state) {
+    public List<Voznja> getObavljeneVoznje() {
+		return obavljeneVoznje;
+	}
+
+
+	public void setObavljeneVoznje(List<Voznja> obavljeneVoznje) {
+		this.obavljeneVoznje = obavljeneVoznje;
+	}
+	
+	public void dodajObavljenuVoznju(Voznja voznja) {
+		this.obavljeneVoznje.add(voznja);
+	}
+
+
+	public void setState(Stanje state) {
         this.state = state;
     }
+	
+	public Stanje getState() {
+		return this.state;
+	}
 
-    public void loadPackage() {
+    public void ukrcajPakete() {
         state.ukrcajPakete(this);
     }
 
-    public void deliverPackage() {
-        state.dostaviPakete(this);
+    public void dostaviPakete() {
+        state.dostaviPakete(this, Tvrtka.getInstance().getVi());
     }
 
-    public void returnToOffice() {
-        state.vratiSeUUred(this);
+    public boolean vratiSeUUred() {
+       return state.vratiSeUUred(this);
     }
 	public int getProsjecnaBrzina() {
 		return prosjecnaBrzina;
@@ -161,14 +179,19 @@ public class Vozilo implements CsvObjekt {
          this.setKapacitet_m3(Double.parseDouble(vrijednosti[3].replace(",", ".")));
          this.setRedoslijed(Integer.parseInt(vrijednosti[4]));
          this.setProsjecnaBrzina(Integer.parseInt(vrijednosti[5]));
-         String[] podrucjaString = vrijednosti[5].split(",");
+         String[] podrucjaString = vrijednosti[6].split(",");
          int[] podrucjaBrojevi = new int[podrucjaString.length];
          int i=0;
          for (String s: podrucjaString)
              podrucjaBrojevi[i++] = Integer.parseInt(s);
          this.setPodrucjaPoRangu(podrucjaBrojevi);
-         this.setStatus(vrijednosti[6]);
-
+         this.setStatus(vrijednosti[7]);
+         if(this.getStatus() == "A")
+        	 this.setState(new AktivnoVozilo());
+         else if(this.getStatus() == "NA")
+        	 this.setState(new NeaktivnoVozilo());
+         else if(this.getStatus() == "NI")
+        	 this.setState(new NeispravnoVozilo());
          
          
          
@@ -256,6 +279,7 @@ public class Vozilo implements CsvObjekt {
 
 	public void setDostavaSat(Clock dostavaSat) {
 		this.dostavaSat = dostavaSat;
+		
 	}
 	
     public Instant getVrijeme() {
@@ -275,44 +299,6 @@ public class Vozilo implements CsvObjekt {
         return formatiraniDateTime;
     }
     
-    public void azurirajDostavu(int vi) {
-    	   boolean imaJosPaketaUVremenskomPeriodu = true;
-    	   while (imaJosPaketaUVremenskomPeriodu) {
-    	       if (dostavaSat != null) {
-    	           int brojPaketa = getUkrcani_paketi().size();
-    	           if (brojPaketa > 0) {
-    	               Duration duration = Duration.ofMinutes(vi);
-    	               Instant sada = dostavaSat.instant();
-    	               Instant kasnije = sada.plus(duration);
-    	               if(kasnije.isBefore(VirtualnoVrijeme.getVrijeme()) || kasnije.equals(VirtualnoVrijeme.getVrijeme())){
-    	            	  dostavaSat = Clock.fixed(kasnije, ZoneId.systemDefault());
-    	                  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
-    	                  ZonedDateTime zdt = dostavaSat.instant().atZone(ZoneId.systemDefault());
-    	                  String formatiraniDateTime = zdt.format(formatter);
-
-    	                  System.out.println("Vozilo: " + this.opis + " je dostavilo paket: " + this.ukrcani_paketi.get(0).getOznaka() + " Na vrijeme sata: " + formatiraniDateTime);
-    	                  this.ukrcani_paketi.get(0).setVrijeme_preuzimanja(this.getVrijemeDostaveDateTime());
-    	                  UredZaDostavu.getInstance().dodajDostavljeniPaket(this.ukrcani_paketi.get(0));
-    	                  UredZaPrijem.getInstance().nadodajNaUkupniIznosDostavu(this.ukrcani_paketi.get(0).getIznos_pouzeca());
-    	                  this.prikupljeniNovac = this.prikupljeniNovac + this.ukrcani_paketi.get(0).getIznos_pouzeca();
-    	                  this.ukrcani_paketi.remove(0);
-    	               }
-    	               else {
-    	            	   imaJosPaketaUVremenskomPeriodu = false;
-    	               }
-    	           }
-    	           else {
-    	               dostavaSat = null;
-    	               this.trenutno_vozi = false;
-    	               System.out.println("Vozilo: " + this.opis + " je završilo sa dostavama.");
-    	               imaJosPaketaUVremenskomPeriodu = false;
-    	           }
-    	       }
-    	       else {
-    	    	   imaJosPaketaUVremenskomPeriodu = false;
-    	       }
-    	   }
-    	}
 
 	public double getPrikupljeniNovac() {
 		return prikupljeniNovac;

@@ -13,6 +13,7 @@ public class CsvLoaderFactory {
 	       loaders.put("mjesta", new MjestoLoader());
 	       loaders.put("ulice", new UlicaLoader());
 	       loaders.put("osobe", new OsobaLoader());
+	       loaders.put("podrucja", new PodrucjeLoader());
 	   }
 
 	   public static CsvLoader<?> getLoader(String tip) {

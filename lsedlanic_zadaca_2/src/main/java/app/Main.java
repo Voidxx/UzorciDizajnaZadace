@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -28,9 +27,14 @@ import objekti.Podrucje;
 import objekti.Ulica;
 import objekti.Vozilo;
 import objekti.VrstaPaketa;
+import stanjaVozila.AktivnoVozilo;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
+import visitori.VoznjaVisitor;
+import visitori.VoznjaVisitorImpl;
+import voznja.Voznja;
+import voznja.VoznjaBuilder;
 
 
 
@@ -69,6 +73,9 @@ public class Main {
         CsvLoader<Paket> paketLoader = (CsvLoader<Paket>) CsvLoaderFactory.getLoader("paketi");
         List<Paket> paketi = paketLoader.loadCsv(pp);
         UredZaPrijem.getInstance().postaviOcekivanePakete(paketi);
+        for(Paket paket : paketi) {
+        	System.out.println(paket.getOznaka());
+        }
         CsvLoader<Ulica> uliceLoader = (CsvLoader<Ulica>) CsvLoaderFactory.getLoader("ulice");
         List<Ulica> ulice = uliceLoader.loadCsv(pu);
         Tvrtka.getInstance().setUlice(ulice);
@@ -97,7 +104,11 @@ public class Main {
                 hendlajIPKomandu();
             } else if (unos.startsWith("VR")) {
                 hendlajVRKomandu(unos);        
-            } else {
+            }
+              else if (unos.startsWith("VV")){
+            	  HendlajVVKomandu(unos);
+            }
+              else {
                 System.out.println("Nevažeća komanda");
             }
         }
@@ -157,6 +168,24 @@ public class Main {
 		}
 	}
 
+	private static void HendlajVVKomandu(String unos) {
+		   String[] parts = unos.split(" ");
+		   if (parts.length > 1) {
+		       String registracija = parts[1];
+		       System.out.println(registracija);
+		       Vozilo vozilo = UredZaDostavu.getInstance().dohvatiVozilo(registracija);
+		       if (vozilo != null) {
+		           VoznjaVisitor visitor = new VoznjaVisitorImpl();
+		           for (Voznja voznja : vozilo.getObavljeneVoznje()) {
+		               voznja.accept(visitor);
+		           }
+		       } else {
+		           System.out.println("Vozilo s registracijom " + registracija + " ne postoji.");
+		       }
+		   } else {
+		       System.out.println("Nevažeća komanda.");
+		   }
+	}
 
 
 	private static void provjeriPakete(int sekundi) {
@@ -240,7 +269,7 @@ public class Main {
 	    			Instant prijasnjeVrijeme = vozilo.getVrijeme();
 	                Instant vrijemeDostave = prijasnjeVrijeme.plusSeconds(vi*60);
 	                if(vrijemeDostave.isBefore(VirtualnoVrijeme.getVrijeme()) || vrijemeDostave.equals(VirtualnoVrijeme.getVrijeme())) {
-	                	vozilo.azurirajDostavu(vi);
+	                	vozilo.dostaviPakete();
 	            }
 	        }
     	}
@@ -250,13 +279,16 @@ public class Main {
 
 	private static void provjeriTrebajuLiKrenutiVozila() {
 		for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-			if(!vozilo.isTrenutno_vozi()) {
-				if((vozilo.getTrenutni_teret_tezina() >= vozilo.getKapacitet_kg() / 2) || (vozilo.getTrenutni_teret_volumen() >= vozilo.getKapacitet_m3() / 2)  && vozilo.getUkrcani_paketi() != null) {
-					if(vozilo.getUkrcani_paketi().stream().anyMatch(paket -> paket.getUsluga_dostave().equals("H"))) {
+			if(!vozilo.isTrenutno_vozi() && vozilo.getStatus().equals("A")) {
+				if((vozilo.getTrenutni_teret_tezina() >= vozilo.getKapacitet_kg() / 2) || (vozilo.getTrenutni_teret_volumen() >= vozilo.getKapacitet_m3() / 2) || vozilo.getUkrcani_paketi().stream().anyMatch(paket -> paket.getUsluga_dostave().equals("H")) && vozilo.getUkrcani_paketi() != null) {
 					vozilo.setTrenutno_vozi(true);
+					AktivnoVozilo aktivnoVozilo = (AktivnoVozilo) vozilo.getState();
+					VoznjaBuilder builder = aktivnoVozilo.getBuilder();
+					builder.postaviVrijemePocetka(VirtualnoVrijeme.getVrijemeDateTime());
+					builder.postaviPostotakZauzecaProstora(vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_m3() * 100);
+					builder.postaviPostotakZauzecaTezine(vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_kg() * 100);
 					System.out.println("Vozilo: " + vozilo.getOpis() + " Kreće u dostavu!");
 					vozilo.setDostavaSat(VirtualnoVrijeme.getSat());
-					}
 				}
 			}
 		}
@@ -312,20 +344,9 @@ public class Main {
 	            .sorted(Comparator.comparing(Vozilo::getRedoslijed))
 	            .collect(Collectors.toList());
 	    for (Vozilo vozilo : sortiranaVozila) {
-	        if(vozilo.isTrenutno_vozi() == false) {
-	            List<Paket> paketiZaDostavu = new ArrayList<>(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
-	            for (Paket paket : paketiZaDostavu) {
-	                double tezinaPaketa = paket.getTezina();
-	                double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
-	                if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getTrenutni_teret_volumen() <= vozilo.getKapacitet_m3())) {
-	                	vozilo.setTrenutni_teret_tezina(vozilo.getTrenutni_teret_tezina() + tezinaPaketa);
-	                	vozilo.setTrenutni_teret_volumen(vozilo.getTrenutni_teret_volumen() + volumenPaketa);
-	                	vozilo.dodajPaketUVozilo(paket);
-	                    UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
-	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + VirtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
-	                    
-	                }
-	            }
+	        if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
+	        	vozilo.setState(new AktivnoVozilo());
+	        	vozilo.ukrcajPakete();
 	        }
 	    }
 	}

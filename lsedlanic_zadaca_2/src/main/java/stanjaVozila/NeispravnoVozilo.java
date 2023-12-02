@@ -11,15 +11,14 @@ public class NeispravnoVozilo implements Stanje{
 	}
 
 	@Override
-	public void dostaviPakete(Vozilo vozilo) {
+	public void dostaviPakete(Vozilo vozilo, int vi) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void vratiSeUUred(Vozilo vozilo) {
-		// TODO Auto-generated method stub
-		
+	public boolean vratiSeUUred(Vozilo vozilo) {
+		return false;
 	}
 
 }
