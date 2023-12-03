@@ -2,6 +2,7 @@ package objekti;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
@@ -34,12 +35,41 @@ public class Mjesto implements CsvObjekt, DioPodrucja{
 	}
 	
 
-	public ArrayList<Integer> getUlice() {
+	public ArrayList<Ulica> getUlice() {
+		return ulice;
+	}
+	
+
+	public ArrayList<Integer> getUliceUBrojevima() {
 		return uliceUBrojevima;
 	}
 
-	public void setUlice(ArrayList<Integer> ulice) {
-		this.uliceUBrojevima = ulice;
+	public void setUliceUBrojevima(ArrayList<Integer> uliceUBrojevima) {
+		this.uliceUBrojevima = uliceUBrojevima;
+	}
+
+	public void setUlice(ArrayList<Ulica> ulice) {
+		this.ulice = ulice;
+	}
+	
+	public void dodajUlicu(Ulica ulica) {
+		this.ulice.add(ulica);
+	}
+	
+	public Ulica dobaviUlicu(int id) {
+		for(Ulica ulica : ulice) {
+			if(ulica.getId() == id) {
+				return ulica;
+			}
+		}
+		return null;
+	}
+
+	public Mjesto dobaviMjesto(int id) {
+		if(this.id == id) {
+			return this;
+		}
+		return null;
 	}
 
 	@Override
@@ -60,11 +90,11 @@ public class Mjesto implements CsvObjekt, DioPodrucja{
 			ulice.add(Integer.parseInt(string));
 			for(Ulica ulica : Tvrtka.getInstance().getUlice()) {
 				if(Integer.parseInt(string) == ulica.getId()) {
-					this.add(ulica);
+					this.dodajUlicu(ulica);
 				}
 			}	
 		}
-		this.setUlice(ulice);
+		this.setUliceUBrojevima(ulice);
 		
 		
 	}
@@ -143,6 +173,12 @@ public class Mjesto implements CsvObjekt, DioPodrucja{
 	 public int getNumChildren() {
 	   return ulice.size();
 	 }
+	 
+	 @Override
+	 public List<DioPodrucja> getChildren() {
+	   return null;
+	 }
+	 
 	 @Override
 	 public String toString() {
 	    return "Mjesto{" +

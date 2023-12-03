@@ -7,6 +7,7 @@ import java.util.List;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
+import tvrtka.Tvrtka;
 import tvrtka.UredZaPrijem;
 
 public class Paket implements CsvObjekt{
@@ -23,7 +24,7 @@ public class Paket implements CsvObjekt{
     private double iznos_pouzeca;
     private double izracunati_iznos_dostave;
     private String vrijeme_preuzimanja;
-    
+
     
 
 	public Paket(String oznaka, String vrijeme_prijema, String posiljatelj, String primatelj, String vrsta_paketa,
@@ -44,6 +45,12 @@ public class Paket implements CsvObjekt{
 		this.izracunati_iznos_dostave = izracunati_iznos_dostave;
 		this.vrijeme_preuzimanja = vrijeme_preuzimanja;
 	}
+	
+	   public PaketIterator getPaketIterator(List<Paket> pakets) {
+	       return new PaketIteratorImpl(pakets);
+	   }
+
+	
 	public double getIzracunati_iznos_dostave() {
 		return izracunati_iznos_dostave;
 	}
@@ -161,6 +168,14 @@ public class Paket implements CsvObjekt{
 	public boolean imaVrijednosti() {
 		   return oznaka != null;
 		}
+	
+	public Osoba vratiPrimatelja() {
+		for(Osoba osoba: Tvrtka.getInstance().getOsobe()) {
+			if(osoba.getOsoba().equals(this.getPrimatelj()))
+				return osoba;
+		}
+		return null;
+	}
 	
 	private void validate(String linija) throws ParseException {
 		   String[] vrijednosti = linija.split(";");

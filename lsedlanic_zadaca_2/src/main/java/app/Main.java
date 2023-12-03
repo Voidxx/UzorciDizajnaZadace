@@ -15,7 +15,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import citaci.CitacTxt;
 import citaci.CsvLoader;
@@ -23,11 +22,16 @@ import citaci.CsvLoaderFactory;
 import objekti.Mjesto;
 import objekti.Osoba;
 import objekti.Paket;
+import objekti.PaketIterator;
+import objekti.PaketIteratorImpl;
 import objekti.Podrucje;
 import objekti.Ulica;
 import objekti.Vozilo;
 import objekti.VrstaPaketa;
 import stanjaVozila.AktivnoVozilo;
+import stanjePaketa.Pošiljatelj;
+import stanjePaketa.Primatelj;
+import stanjePaketa.Subject;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
@@ -73,9 +77,7 @@ public class Main {
         CsvLoader<Paket> paketLoader = (CsvLoader<Paket>) CsvLoaderFactory.getLoader("paketi");
         List<Paket> paketi = paketLoader.loadCsv(pp);
         UredZaPrijem.getInstance().postaviOcekivanePakete(paketi);
-        for(Paket paket : paketi) {
-        	System.out.println(paket.getOznaka());
-        }
+ 
         CsvLoader<Ulica> uliceLoader = (CsvLoader<Ulica>) CsvLoaderFactory.getLoader("ulice");
         List<Ulica> ulice = uliceLoader.loadCsv(pu);
         Tvrtka.getInstance().setUlice(ulice);
@@ -146,7 +148,8 @@ public class Main {
 		                	int sekundiDoPunogSata = 3600 - (vrijemePrije.getMinute() * 60);
 		                	int preostaleSekundeNakonPunogSata = vrijemeNakon.getMinute() * 60;
 		                	
-		                	provjeriPakete(sekundiDoPunogSata);		                	
+		                	provjeriPakete(sekundiDoPunogSata);	
+		                	ukrcajPakete();
 		                	provjeriTrebajuLiKrenutiVozila();
 		                	provjeriPakete(preostaleSekundeNakonPunogSata);
 		                    
@@ -154,7 +157,7 @@ public class Main {
 		                	System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
 		                	VirtualnoVrijeme.nadodajVrijeme(ms);
 		                	provjeriHoceLiBitiDostavljenPaket(ms);
-		                	provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
+		                	provjeriPrijemPaketa(vrijemePrije, vrijemeNakon);   
 		                	provjeriJeLiPunoVozilo();  	
 		                }
 		                }
@@ -172,7 +175,6 @@ public class Main {
 		   String[] parts = unos.split(" ");
 		   if (parts.length > 1) {
 		       String registracija = parts[1];
-		       System.out.println(registracija);
 		       Vozilo vozilo = UredZaDostavu.getInstance().dohvatiVozilo(registracija);
 		       if (vozilo != null) {
 		           VoznjaVisitor visitor = new VoznjaVisitorImpl();
@@ -196,7 +198,7 @@ public class Main {
 		vrijemeNakon = vrijemePrije.plusSeconds(sekundi);
 		System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
 		VirtualnoVrijeme.nadodajVrijeme(sekundi);
-		provjeriDaLiJePotrebnoUkrcatiPakete(vrijemePrije, vrijemeNakon);
+		provjeriPrijemPaketa(vrijemePrije, vrijemeNakon);;
 	}
 
 
@@ -306,20 +308,23 @@ public class Main {
 	}
 
 
-
-	private static void provjeriDaLiJePotrebnoUkrcatiPakete(LocalDateTime prije, LocalDateTime poslije) {	      
-    	provjeriPrijemPaketa(prije, poslije);    	
-    	ukrcajPakete();   	
-    }
-
-
-
 	private static void provjeriPrijemPaketa(LocalDateTime prije, LocalDateTime poslije) {
 		for (Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
+			Subject subject = new Subject();
     		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
     		LocalDateTime dateTime = LocalDateTime.parse(paket.getVrijeme_prijema(), formatter);
     		if(dateTime.isBefore(poslije) && dateTime.isAfter(prije)) {
     			UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
+    			System.out.println("Paket: " + paket.getOznaka() + " je zaprimljen.");
+    			
+                //obavijestavanje
+                Pošiljatelj posiljatelj = new Pošiljatelj(paket.getPosiljatelj());
+                Primatelj primatelj = new Primatelj(paket.getPrimatelj());
+                
+                subject.attach(primatelj);
+                subject.attach(posiljatelj);
+                
+                subject.setPaket(paket);
     		}
 		}
 	}
@@ -327,28 +332,54 @@ public class Main {
 
 
 	private static void ukrcajPakete() {
-	    Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
-	        @Override
-	        public int compare(Paket p1, Paket p2) {
-	            if (p1.getUsluga_dostave().equals("H") && !p2.getUsluga_dostave().equals("H")) {
-	                return -1;
-	            } else if (!p1.getUsluga_dostave().equals("H") && p2.getUsluga_dostave().equals("H")) {
-	                return 1;
-	            } else {
-	                return 0;
-	            }
-	        }
-	    });
+		Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
+			   @Override
+			   public int compare(Paket p1, Paket p2) {
+				   Podrucje area1 = null; // Assuming the area of the recipient can be accessed like this
+			       Podrucje area2 = null;
+				   if(p1.vratiPrimatelja() != null && p2.vratiPrimatelja() != null) {
+			       area1 = p1.vratiPrimatelja().dobaviPodrucje(); // Assuming the area of the recipient can be accessed like this
+			       area2 = p2.vratiPrimatelja().dobaviPodrucje();
+				   }
+			       
+			       if (!(area1 == area2)) {
+			           return 1;
+			       }
+			       else if (area1 == null != area2 == null) {
+			    	   
+			       }
+			       else {
+			           if (p1.getUsluga_dostave().equals("H") && !p2.getUsluga_dostave().equals("H")) {
+			               return -1;
+			           } else if (!p1.getUsluga_dostave().equals("H") && p2.getUsluga_dostave().equals("H")) {
+			               return 1;
+			           } else {
+			               return 0;
+			           }
+			       }
+			   }
+			});
+	    
 
-	    List<Vozilo> sortiranaVozila = UredZaDostavu.getInstance().dohvatiListuVozila().stream()
-	            .sorted(Comparator.comparing(Vozilo::getRedoslijed))
-	            .collect(Collectors.toList());
-	    for (Vozilo vozilo : sortiranaVozila) {
-	        if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
-	        	vozilo.setState(new AktivnoVozilo());
-	        	vozilo.ukrcajPakete();
-	        }
+	    PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
+	    while(iterator.hasNext()) {
+	    	Paket paket = iterator.next();
+            for(Osoba osoba : Tvrtka.getInstance().getOsobe()) {
+            	if(osoba.getOsoba().equals(paket.getPrimatelj())) {
+            	    for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+            	        if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
+            	        	vozilo.setState(new AktivnoVozilo());
+            	        	vozilo.ukrcajPakete(paket);
+            	        	iterator.remove();
+            	        	break;
+            	        }
+            	    }
+            	}
+            }
 	    }
+	    
+	    
+
 	}
     
     

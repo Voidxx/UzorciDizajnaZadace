@@ -1,6 +1,7 @@
 package objekti;
 
 import java.text.ParseException;
+import java.util.List;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
@@ -13,6 +14,7 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 	private double gps_lat_2;
 	private double gps_lon_2;
 	private int najv_kucni_broj;
+	
 	
 	
 	
@@ -32,6 +34,10 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 
 	@Override
 	public void process(String linija) throws ParseException {
+		linija = linija.replaceAll("\\s", "");
+		  if (linija.trim().isEmpty()) {
+		      return;
+		  }
 		 try {
 		     validate(linija);
 		 } catch (ParseException e) {
@@ -58,22 +64,21 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 
 	
 	private void validate(String linija) throws ParseException {
-		   String[] vrijednosti = linija.split(";");
-
-		   if (vrijednosti.length != 7) {
-		       throw new ParseException("Redak sadrži " + vrijednosti.length + " vrijednosti, ali se očekuje 7 vrijednosti.", 0);
-		   }
+		  String[] vrijednosti = linija.split(";");
 
 
+		  // Skip lines with less than seven fields
+		  if (vrijednosti.length < 7) {
+		      throw new ParseException("Redak sadrži " + vrijednosti.length + " vrijednosti, ali se očekuje 7 vrijednosti.", 0);
+		  }
 
-		   for (int i = 0; i < 2; i++) {
-		       if (vrijednosti[i].trim().isEmpty()) {
-		           throw new ParseException("Nepostojeće polje na indeksu:  " + i, 0);
-		       }
-		   }
+		  for (int i = 0; i < 7; i++) {
+		      if (vrijednosti[i].trim().isEmpty()) {
+		          throw new ParseException("Nepostojeće polje na indeksu: " + i, 0);
+		      }
+		  }
 
-	}
-
+		}
 
 	public int getId() {
 		return id;
@@ -149,6 +154,18 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 	 @Override
 	 public int getNumChildren() {
 	   return 0;
+	 }
+	 
+	 @Override
+	 public List<DioPodrucja> getChildren() {
+	   return null;
+	 }
+	 
+	 public Ulica getUlica(int id) {
+		 if(id == this.id) {
+			 return this;
+		 }
+		 return null;
 	 }
 	
 	

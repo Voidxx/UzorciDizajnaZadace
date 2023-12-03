@@ -6,13 +6,18 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import app.VirtualnoVrijeme;
+import objekti.Osoba;
 import objekti.Paket;
+import objekti.Podrucje;
 import objekti.Vozilo;
+import stanjePaketa.Pošiljatelj;
+import stanjePaketa.Primatelj;
+import stanjePaketa.Subject;
+import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
 import voznja.Voznja;
@@ -20,7 +25,8 @@ import voznja.VoznjaBuilder;
 
 public class AktivnoVozilo implements Stanje{
 	private VoznjaBuilder builder = new VoznjaBuilder();
-	
+	boolean jeLiOsobaPrimatelj = false;
+	Osoba primatelj = null;
 	
 	public VoznjaBuilder getBuilder() {
 		return builder;
@@ -31,26 +37,38 @@ public class AktivnoVozilo implements Stanje{
 	}
 
 	@Override
-	public void ukrcajPakete(Vozilo vozilo) {
-        List<Paket> paketiZaDostavu = new ArrayList<>(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
-        for (Paket paket : paketiZaDostavu) {
-            double tezinaPaketa = paket.getTezina();
-            double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
-            if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getTrenutni_teret_volumen() <= vozilo.getKapacitet_m3())) {
-            	vozilo.setTrenutni_teret_tezina(vozilo.getTrenutni_teret_tezina() + tezinaPaketa);
-            	vozilo.setTrenutni_teret_volumen(vozilo.getTrenutni_teret_volumen() + volumenPaketa);
-            	vozilo.dodajPaketUVozilo(paket);
-                UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
-                System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + VirtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
-                builder.dodajUkrcanePakete(paket);
-            }
-        }
-		
-	}
+	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
+	  this.primatelj = paket.vratiPrimatelja();
+	  Podrucje trenutnoPodrucje = null;
+	  List<Podrucje> listaPodrucja = Tvrtka.getInstance().getPodrucja();
+	  for(Podrucje podrucje : listaPodrucja) {
+	      for(Integer podrucjeId : vozilo.getPodrucjaPoRangu()) {
+	          if(podrucjeId.equals(podrucje.getId())){
+	        	  trenutnoPodrucje = podrucje;
+		      }
+		  }
+		}
+	              if(primatelj != null && trenutnoPodrucje.getChildren().contains(primatelj.dobaviMjesto(primatelj.getGrad())) && trenutnoPodrucje.getChildren().contains(primatelj.dobaviUlicu(primatelj.getUlica()))) {
+	                double tezinaPaketa = paket.getTezina();
+	                double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
+	                if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getTrenutni_teret_volumen() <= vozilo.getKapacitet_m3())) {
+	                    vozilo.setTrenutni_teret_tezina(vozilo.getTrenutni_teret_tezina() + tezinaPaketa);
+	                    vozilo.setTrenutni_teret_volumen(vozilo.getTrenutni_teret_volumen() + volumenPaketa);
+	                    vozilo.dodajPaketUVozilo(paket);
+	                    builder.dodajUkrcanePakete(paket);
+	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + VirtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
+	                    UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
+	                    
+	                }
+	              }
+	          }
+
+	
 
 	@Override
 	public void dostaviPakete(Vozilo vozilo, int vi) {
 		   boolean imaJosPaketaUVremenskomPeriodu = true;
+		   Subject subject = new Subject();
     	   while (imaJosPaketaUVremenskomPeriodu) {
     	       if (vozilo.getDostavaSat() != null) {
     	           int brojPaketa = vozilo.getUkrcani_paketi().size();
@@ -64,6 +82,15 @@ public class AktivnoVozilo implements Stanje{
     	                  ZonedDateTime zdt = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
     	                  String formatiraniDateTime = zdt.format(formatter);
 
+    	                  //obavijestavanje
+    	                  Pošiljatelj posiljatelj = new Pošiljatelj(vozilo.getUkrcani_paketi().get(0).getPosiljatelj());
+    	                  Primatelj primatelj = new Primatelj(vozilo.getUkrcani_paketi().get(0).getPrimatelj());
+    	                  
+    	                  subject.attach(primatelj);
+    	                  subject.attach(posiljatelj);
+    	                  
+    	                  subject.setPaket(vozilo.getUkrcani_paketi().get(0));
+    	                  
     	                  System.out.println("Vozilo: " + vozilo.getOpis() + " je dostavilo paket: " + vozilo.getUkrcani_paketi().get(0).getOznaka() + " Na vrijeme sata: " + formatiraniDateTime);
     	                  vozilo.getUkrcani_paketi().get(0).setVrijeme_preuzimanja(vozilo.getVrijemeDostaveDateTime());
     	                  UredZaDostavu.getInstance().dodajDostavljeniPaket(vozilo.getUkrcani_paketi().get(0));

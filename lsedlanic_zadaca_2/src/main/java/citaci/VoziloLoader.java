@@ -18,7 +18,7 @@ public class VoziloLoader implements CsvLoader<Vozilo> {
 	           br.readLine();
 	           String line;
 	           while ((line = br.readLine()) != null) {
-	               Vozilo vozilo = new Vozilo(line, line, 0, 0, 0, 0, new ArrayList<Paket>(), 0, false, null, 0, 0, line, null);
+	               Vozilo vozilo = new Vozilo(line, line, 0, 0, 0, 0, new ArrayList<Paket>(), 0, false, null, 0, 0, line, new ArrayList<Integer>());
 	               vozilo.process(line);
 	               if(vozilo.imaVrijednosti())
 	                  vozila.add(vozilo);

@@ -1,11 +1,12 @@
 package stanjaVozila;
 
+import objekti.Paket;
 import objekti.Vozilo;
 
 public class NeispravnoVozilo implements Stanje{
 
 	@Override
-	public void ukrcajPakete(Vozilo vozilo) {
+	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
 		// TODO Auto-generated method stub
 		
 	}

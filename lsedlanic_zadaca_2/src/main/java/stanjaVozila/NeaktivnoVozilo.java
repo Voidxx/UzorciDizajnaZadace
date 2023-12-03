@@ -1,14 +1,11 @@
 package stanjaVozila;
 
+import objekti.Paket;
 import objekti.Vozilo;
 
 public class NeaktivnoVozilo implements Stanje{
 
-	@Override
-	public void ukrcajPakete(Vozilo vozilo) {
-		// TODO Auto-generated method stub
-		
-	}
+
 
 	@Override
 	public void dostaviPakete(Vozilo vozilo, int vi) {
@@ -19,6 +16,12 @@ public class NeaktivnoVozilo implements Stanje{
 	@Override
 	public boolean vratiSeUUred(Vozilo vozilo) {
 		return false;
+	}
+
+	@Override
+	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

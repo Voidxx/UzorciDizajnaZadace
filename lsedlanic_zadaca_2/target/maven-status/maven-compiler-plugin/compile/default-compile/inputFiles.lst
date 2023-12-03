@@ -1,5 +1,8 @@
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/tvrtka/UredZaPrijem.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/visitori/VoznjaVisitorImpl.java
+/home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjePaketa/Primatelj.java
+/home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjePaketa/Subject.java
+/home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjePaketa/Pošiljatelj.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjaVozila/NeaktivnoVozilo.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/app/Main.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/app/PogreskeBrojac.java
@@ -13,9 +16,11 @@
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/voznja/Voznja.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/Mjesto.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/voznja/VoznjaBuilder.java
+/home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/PaketIterator.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/DioPodrucja.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/Ulica.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/app/ProvjeraArgumenata.java
+/home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/PaketIteratorImpl.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/citaci/PodrucjeLoader.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/citaci/CsvLoaderFactory.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjaVozila/Stanje.java
@@ -26,6 +31,7 @@
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/citaci/CsvLoader.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/Osoba.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/citaci/VoziloLoader.java
+/home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjePaketa/Observer.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/stanjaVozila/NeispravnoVozilo.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/objekti/Podrucje.java
 /home/NWTiS_3/lsedlanic_zadaca_2/src/main/java/citaci/OsobaLoader.java

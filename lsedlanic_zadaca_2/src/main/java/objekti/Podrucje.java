@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import citaci.CsvObjekt;
+import tvrtka.Tvrtka;
 
 public class Podrucje implements CsvObjekt, DioPodrucja{
 	  private int id;
@@ -39,52 +40,56 @@ public class Podrucje implements CsvObjekt, DioPodrucja{
 	  public int getNumChildren() {
 	      return this.children.size();
 	  }
+	  @Override
+	  public List<DioPodrucja> getChildren() {
+	      return this.children;
+	  }
+	  
+	  
 
 	  @Override
 	  public void process(String linija) throws ParseException {
-	      // potrebna validacija
-	      String[] vrijednosti = linija.split("; ");
-	      this.setId(Integer.parseInt(vrijednosti[0]));
-	      String[] paroviSaDvotockom = vrijednosti[1].split(",");
+	    linija = linija.replaceAll("\\s", "");
+	    if (linija.trim().isEmpty()) {
+	        return;
+	    }
 
-	      // add streets to the area
-	      for (String par : paroviSaDvotockom) {
-	          String[] parovi = par.split(":");
-	          int cityId = Integer.parseInt(parovi[0]);
-	          String streetIds = parovi[1];
+	    String[] parts = linija.split(";");
+	    String id = parts[0];
+	    String[] gradUlicaPairs = parts[1].split(",");
 
-	          if (streetIds.equals("*")) {
-	              // add all streets of the city to the area
-	              for (DioPodrucja child : this.children) {
-	                 if (child instanceof Ulica) {
-	                     Ulica ulica = (Ulica) child;
-	                     if (ulica.getId() == cityId) {
-	                         this.add(ulica);
-	                     }
-	                 }
-	              }
-	          } else {
-	              // add only the specified streets to the area
-	              for (String id : streetIds.split(",")) {
-	                 for (DioPodrucja child : this.children) {
-	                     if (child instanceof Ulica) {
-	                         Ulica ulica = (Ulica) child;
-	                         if (ulica.getId() == Integer.parseInt(id)) {
-	                             this.add(ulica);
-	                         }
-	                     }
-	                 }
-	              }
-	          }
-	      }
+	    this.id = Integer.parseInt(id);
+
+	    for (String gradUlicaPair : gradUlicaPairs) {
+	        String[] gradUlica = gradUlicaPair.split(":");
+	        Mjesto mjesto = new Mjesto();
+	        for(Mjesto mjesto2 : Tvrtka.getInstance().getMjesta()) {
+	        	if(mjesto2.getId() == Integer.parseInt(gradUlica[0]))
+	        		mjesto = mjesto2;
+	        		this.add(mjesto);
+	        }
+
+
+	        if ("*".equals(gradUlica[1])) {
+	            // Add all Ulica objects from the Mjesto object to the Podrucje object
+	            for (Ulica ulica : mjesto.getUlice()) {
+	                this.add(ulica);
+	            }
+	        } else {
+	            // Add the corresponding Ulica object from the Mjesto object to the Podrucje object
+	            Ulica ulica = mjesto.dobaviUlicu(Integer.parseInt(gradUlica[1]));
+	            if (ulica != null) {
+	                this.add(ulica);
+	            }
+	        }
+	    }
 	  }
 	  
 	  
 
 	@Override
 	public boolean imaVrijednosti() {
-		// TODO Auto-generated method stub
-		return false;
+		return this.id != 0;
 	}
 
 

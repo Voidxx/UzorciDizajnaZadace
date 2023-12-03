@@ -49,7 +49,7 @@ public class Tvrtka {
 	}
 
 	public List<Osoba> getOsobe() {
-		return osobe;
+		return this.osobe;
 	}
 
 	public void setOsobe(List<Osoba> osobe) {

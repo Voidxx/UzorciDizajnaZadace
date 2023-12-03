@@ -34,7 +34,7 @@ public class Vozilo implements CsvObjekt {
     private double prikupljeniNovac;
     private int prosjecnaBrzina;
     private String status;
-    private int[] podrucjaPoRangu;
+    private List<Integer> podrucjaPoRangu;
     private Stanje state;
     private List<Voznja> obavljeneVoznje = new ArrayList<Voznja>();
 
@@ -46,7 +46,7 @@ public class Vozilo implements CsvObjekt {
 	public Vozilo(String registracija, String opis, double kapacitet_kg, double kapacitet_m3,
 			double trenutni_teret_tezina, double trenutni_teret_volumen, List<Paket> ukrcani_paketi, int redoslijed,
 			boolean trenutno_vozi, Clock dostavaSat, double prikupljeniNovac, int prosjecnaBrzina, String status,
-			int[] podrucjaPoRangu) {
+			List<Integer> podrucjaPoRangu) {
 		super();
 		this.registracija = registracija;
 		this.opis = opis;
@@ -87,8 +87,8 @@ public class Vozilo implements CsvObjekt {
 		return this.state;
 	}
 
-    public void ukrcajPakete() {
-        state.ukrcajPakete(this);
+    public void ukrcajPakete(Paket paket) {
+        state.ukrcajPakete(this, paket);
     }
 
     public void dostaviPakete() {
@@ -120,16 +120,19 @@ public class Vozilo implements CsvObjekt {
 
 
 
-	public int[] getPodrucjaPoRangu() {
+	public List<Integer> getPodrucjaPoRangu() {
 		return podrucjaPoRangu;
 	}
 
 
 
-	public void setPodrucjaPoRangu(int[] podrucjaPoRangu) {
+	public void setPodrucjaPoRangu(List<Integer> podrucjaPoRangu) {
 		this.podrucjaPoRangu = podrucjaPoRangu;
 	}
 
+	public void dodajUPodrucjaPoRangu(Integer podrucje) {
+		this.podrucjaPoRangu.add(podrucje);
+	}
 
 
 	public String getRegistracija() {
@@ -180,11 +183,9 @@ public class Vozilo implements CsvObjekt {
          this.setRedoslijed(Integer.parseInt(vrijednosti[4]));
          this.setProsjecnaBrzina(Integer.parseInt(vrijednosti[5]));
          String[] podrucjaString = vrijednosti[6].split(",");
-         int[] podrucjaBrojevi = new int[podrucjaString.length];
-         int i=0;
-         for (String s: podrucjaString)
-             podrucjaBrojevi[i++] = Integer.parseInt(s);
-         this.setPodrucjaPoRangu(podrucjaBrojevi);
+         for (String s: podrucjaString) {
+             this.podrucjaPoRangu.add(Integer.parseInt(s));
+         }
          this.setStatus(vrijednosti[7]);
          if(this.getStatus() == "A")
         	 this.setState(new AktivnoVozilo());
@@ -311,5 +312,7 @@ public class Vozilo implements CsvObjekt {
 	public void dodajNovac(double novac) {
 		this.prikupljeniNovac = this.prikupljeniNovac + novac;
 	}
+
+
 
 }
