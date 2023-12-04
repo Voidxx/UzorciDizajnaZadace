@@ -6,18 +6,15 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Locale;
 
 import app.VirtualnoVrijeme;
 import objekti.Osoba;
 import objekti.Paket;
-import objekti.Podrucje;
 import objekti.Vozilo;
 import stanjePaketa.Pošiljatelj;
 import stanjePaketa.Primatelj;
 import stanjePaketa.Subject;
-import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
 import voznja.Voznja;
@@ -38,17 +35,7 @@ public class AktivnoVozilo implements Stanje{
 
 	@Override
 	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
-	  this.primatelj = paket.vratiPrimatelja();
-	  Podrucje trenutnoPodrucje = null;
-	  List<Podrucje> listaPodrucja = Tvrtka.getInstance().getPodrucja();
-	  for(Podrucje podrucje : listaPodrucja) {
-	      for(Integer podrucjeId : vozilo.getPodrucjaPoRangu()) {
-	          if(podrucjeId.equals(podrucje.getId())){
-	        	  trenutnoPodrucje = podrucje;
-		      }
-		  }
-		}
-	              if(primatelj != null && trenutnoPodrucje.getChildren().contains(primatelj.dobaviMjesto(primatelj.getGrad())) && trenutnoPodrucje.getChildren().contains(primatelj.dobaviUlicu(primatelj.getUlica()))) {
+
 	                double tezinaPaketa = paket.getTezina();
 	                double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
 	                if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getTrenutni_teret_volumen() <= vozilo.getKapacitet_m3())) {
@@ -59,7 +46,6 @@ public class AktivnoVozilo implements Stanje{
 	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + VirtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
 	                    UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
 	                    
-	                }
 	              }
 	          }
 
@@ -88,7 +74,6 @@ public class AktivnoVozilo implements Stanje{
     	                  
     	                  subject.attach(primatelj);
     	                  subject.attach(posiljatelj);
-    	                  
     	                  subject.setPaket(vozilo.getUkrcani_paketi().get(0));
     	                  
     	                  System.out.println("Vozilo: " + vozilo.getOpis() + " je dostavilo paket: " + vozilo.getUkrcani_paketi().get(0).getOznaka() + " Na vrijeme sata: " + formatiraniDateTime);

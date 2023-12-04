@@ -94,6 +94,11 @@ public class Main {
         VirtualnoVrijeme.getInstance();
         VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
         
+		   for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+			   if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
+				   vozilo.setState(new AktivnoVozilo());
+			   } 
+		   }   
         Scanner scanner = new Scanner(System.in);
         String unos;
         while (true) {
@@ -330,60 +335,70 @@ public class Main {
 	}
 
 
-
+    
+//	private static void ukrcajPakete() {
+//		   PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
+//	       for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+//		   while(iterator.hasNext()) {
+//		       Paket paket = iterator.next();
+//		           if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
+//		               vozilo.setState(new AktivnoVozilo());
+//		               vozilo.ukrcajPakete(paket);
+//		               iterator.remove();
+//		               break;
+//		           }
+//		       }
+//		   }
+//		}
+	
+	
 	private static void ukrcajPakete() {
-		Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
-			   @Override
-			   public int compare(Paket p1, Paket p2) {
-				   Podrucje area1 = null; // Assuming the area of the recipient can be accessed like this
-			       Podrucje area2 = null;
-				   if(p1.vratiPrimatelja() != null && p2.vratiPrimatelja() != null) {
-			       area1 = p1.vratiPrimatelja().dobaviPodrucje(); // Assuming the area of the recipient can be accessed like this
-			       area2 = p2.vratiPrimatelja().dobaviPodrucje();
-				   }
-			       
-			       if (!(area1 == area2)) {
-			           return 1;
-			       }
-			       else if (area1 == null != area2 == null) {
-			    	   
-			       }
-			       else {
-			           if (p1.getUsluga_dostave().equals("H") && !p2.getUsluga_dostave().equals("H")) {
-			               return -1;
-			           } else if (!p1.getUsluga_dostave().equals("H") && p2.getUsluga_dostave().equals("H")) {
-			               return 1;
-			           } else {
-			               return 0;
-			           }
-			       }
-			   }
-			});
-	    
+		   // Sort the list of packages by area id
+		   Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
+		       @Override
+		       public int compare(Paket p1, Paket p2) {
+		    	   if(p1.vratiPrimatelja() == null || p2.vratiPrimatelja() == null)
+		    		   return 0;
 
-	    PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
-	    while(iterator.hasNext()) {
-	    	Paket paket = iterator.next();
-            for(Osoba osoba : Tvrtka.getInstance().getOsobe()) {
-            	if(osoba.getOsoba().equals(paket.getPrimatelj())) {
-            	    for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-            	        if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
-            	        	vozilo.setState(new AktivnoVozilo());
-            	        	vozilo.ukrcajPakete(paket);
-            	        	iterator.remove();
-            	        	break;
-            	        }
-            	    }
-            	}
-            }
-	    }
-	    
-	    
+		    		Osoba primatelj1 = p1.vratiPrimatelja();
+		    		Osoba primatelj2 = p2.vratiPrimatelja();
 
+		    		if(primatelj1.dobaviPodrucje() == null || primatelj2.dobaviPodrucje() == null)
+		    		   return 0;
+
+		    		return Integer.compare(primatelj1.dobaviPodrucje().getId(), primatelj2.dobaviPodrucje().getId());
+		       }
+		   });
+
+  
+		   // Iterate over the sorted list of packages
+		   PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
+		   while(iterator.hasNext()) {
+		       Paket paket = iterator.next();
+		       // Find the first vehicle that has the same area id in its getPodrucjaPoRangu() method
+		       for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+		    	if(paket.vratiPrimatelja() != null) {
+		    	if(paket.vratiPrimatelja().dobaviPodrucje() != null) {
+		    		
+		           if (vozilo.getPodrucjaPoRangu().contains(paket.vratiPrimatelja().dobaviPodrucje().getId())) {
+		               // Load the package into the vehicle
+		               vozilo.ukrcajPakete(paket);
+		               iterator.remove();
+		               break;
+		           }
+		       }else {
+		    	   iterator.remove();
+		    	   break;
+		       }
+		    	
+		   }else {
+			   iterator.remove();
+			   break;
+		   }
+		}
 	}
-    
-    
-    
+}
+
 }
 
 
