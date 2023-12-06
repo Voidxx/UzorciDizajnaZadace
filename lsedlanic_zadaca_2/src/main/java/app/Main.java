@@ -93,12 +93,19 @@ public class Main {
 
         VirtualnoVrijeme.getInstance();
         VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
-        
+           String[] gpsKoordinateUredaString = gps.trim().split(",");
+           double latitudaUreda = Double.parseDouble(gpsKoordinateUredaString[0]);
+           double longitudaUreda = Double.parseDouble(gpsKoordinateUredaString[1]);
+           
 		   for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+			   vozilo.setTrenutniLon(longitudaUreda);
+			   vozilo.setTrenutniLat(latitudaUreda);
 			   if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
 				   vozilo.setState(new AktivnoVozilo());
 			   } 
 		   }   
+		   
+		provjeriStatusLagera();
         Scanner scanner = new Scanner(System.in);
         String unos;
         while (true) {
@@ -121,6 +128,20 @@ public class Main {
         }
         scanner.close();
     }
+
+
+
+	private static void provjeriStatusLagera() {
+		for(Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
+    		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
+    		LocalDateTime dateTime = LocalDateTime.parse(paket.getVrijeme_prijema(), formatter);
+    		LocalDateTime pocetakRada = LocalDateTime.parse(vs, formatter);
+    		if(dateTime.isBefore(pocetakRada)) {
+    			UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
+    			System.out.println("Paket iz lagera: " + paket.getOznaka() + " je spreman za dostavu.");
+    		}
+		}
+	}
 
 
 

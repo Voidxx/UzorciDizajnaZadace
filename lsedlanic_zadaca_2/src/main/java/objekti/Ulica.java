@@ -31,6 +31,18 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 		this.gps_lon_2 = gps_lon_2;
 		this.najv_kucni_broj = najv_kucni_broj;
 	}
+	
+	public double[] izračunajGpsKoordinate(int kbr) {
+		   double lat1 = this.gps_lat_1;
+		   double lon1 = this.gps_lon_1;
+		   double lat2 = this.gps_lat_2;
+		   double lon2 = this.gps_lon_2;
+
+		   double lat = lat1 + ((kbr - 1) / (double) (najv_kucni_broj - 1)) * (lat2 - lat1);
+		   double lon = lon1 + ((kbr - 1) / (double) (najv_kucni_broj - 1)) * (lon2 - lon1);
+
+		   return new double[]{lat, lon};
+		}
 
 	@Override
 	public void process(String linija) throws ParseException {

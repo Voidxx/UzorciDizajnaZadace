@@ -8,8 +8,11 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
@@ -37,9 +40,14 @@ public class Vozilo implements CsvObjekt {
     private List<Integer> podrucjaPoRangu;
     private Stanje state;
     private List<Voznja> obavljeneVoznje = new ArrayList<Voznja>();
-
-    
-
+    private double trenutniLon;
+    private double trenutniLat;
+    private Queue<Paket> redIsporuke = new PriorityQueue<>(Comparator.comparing(paket -> {
+ 	   double[] gpsKoordinatePaketa = paket.vratiPrimatelja().dobaviUlicu(paket.vratiPrimatelja().getUlica()).izračunajGpsKoordinate(paket.vratiPrimatelja().getKbr());
+ 	   double dx = gpsKoordinatePaketa[1] - this.getTrenutniLon();
+ 	   double dy = gpsKoordinatePaketa[0] - this.getTrenutniLat();
+ 	   return Math.sqrt(dx * dx + dy * dy);
+ 	 }));
 
 	
 	
@@ -65,7 +73,43 @@ public class Vozilo implements CsvObjekt {
 	}
 
 	
-    public List<Voznja> getObavljeneVoznje() {
+	 public void dodajURed(Paket paket) {
+		  redIsporuke.add(paket);
+		 }
+	 
+	 public Paket uzmiIzReda() {
+		  return redIsporuke.poll();
+		 }
+	
+    public double getTrenutniLon() {
+		return trenutniLon;
+	}
+
+
+
+
+	public void setTrenutniLon(double trenutniLon) {
+		this.trenutniLon = trenutniLon;
+	}
+
+
+
+
+	public double getTrenutniLat() {
+		return trenutniLat;
+	}
+
+
+
+
+	public void setTrenutniLat(double trenutniLat) {
+		this.trenutniLat = trenutniLat;
+	}
+
+
+
+
+	public List<Voznja> getObavljeneVoznje() {
 		return obavljeneVoznje;
 	}
 
