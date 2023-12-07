@@ -10,9 +10,12 @@ public class Pošiljatelj implements Observer{
 	   }
 
 	   @Override
-	   public void update(Paket paket) {
-		      if (paket.getVrijeme_preuzimanja() != null) {
-	       System.out.println("Sender " + senderName + " received a package: " + paket.getOznaka() + " has been delivered.");
-		      }
+	   public void paketZaprimljen(Paket paket) {
+		    	  System.out.println(senderName + ", paket je zaprimljen u tvrtku.");
+	   }
+	   
+	   @Override
+	   public void paketDostavljen(Paket paket) {
+		    	  System.out.println(senderName + ", paket: " + paket.getOznaka() + " je dostavljen primatelju. Hvala na poslovanju");
 	   }
 }

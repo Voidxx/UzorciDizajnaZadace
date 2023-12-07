@@ -29,9 +29,6 @@ import objekti.Ulica;
 import objekti.Vozilo;
 import objekti.VrstaPaketa;
 import stanjaVozila.AktivnoVozilo;
-import stanjePaketa.Pošiljatelj;
-import stanjePaketa.Primatelj;
-import stanjePaketa.Subject;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
@@ -138,8 +135,9 @@ public class Main {
     		LocalDateTime pocetakRada = LocalDateTime.parse(vs, formatter);
     		if(dateTime.isBefore(pocetakRada)) {
     			UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
-    			System.out.println("Paket iz lagera: " + paket.getOznaka() + " je spreman za dostavu.");
-    		}
+
+                paket.getOvajPaket().notifyObservers("zaprimljen");
+                }
 		}
 	}
 
@@ -163,7 +161,7 @@ public class Main {
 		                LocalTime lokalnoVirtualnoVrijeme = localDateTime.toLocalTime();
 		                
 		                if (lokalnoVirtualnoVrijeme.isBefore(otvorenje) || lokalnoVirtualnoVrijeme.isAfter(zatvaranje)) { 
-		                	System.out.println("Nije radno vrijeme...");
+		                	System.out.println("Nije radno vrijeme..."); // provjeri za to
 		                	return;
 		                } else {
 		                
@@ -173,13 +171,16 @@ public class Main {
 		                if (vrijemeNakon.getMinute() < vrijemePrije.getMinute()) {
 		                	int sekundiDoPunogSata = 3600 - (vrijemePrije.getMinute() * 60);
 		                	int preostaleSekundeNakonPunogSata = vrijemeNakon.getMinute() * 60;
-		                	
-		                	provjeriPakete(sekundiDoPunogSata);	
+		                	provjeriHoceLiBitiDostavljenPaket(sekundiDoPunogSata);
+		                	provjeriPakete(sekundiDoPunogSata);
+		                	provjeriHoceLiBitiDostavljenPaket(preostaleSekundeNakonPunogSata);
+		                	provjeriPakete(preostaleSekundeNakonPunogSata);
 		                	ukrcajPakete();
 		                	provjeriTrebajuLiKrenutiVozila();
-		                	provjeriPakete(preostaleSekundeNakonPunogSata);
+
 		                    
-		                } else {
+		                }
+		                else {
 		                	System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
 		                	VirtualnoVrijeme.nadodajVrijeme(ms);
 		                	provjeriHoceLiBitiDostavljenPaket(ms);
@@ -294,14 +295,10 @@ public class Main {
     private static void provjeriHoceLiBitiDostavljenPaket(int sekunde) {
     	for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
     		if(vozilo.isTrenutno_vozi() == true) {
-	    			Instant prijasnjeVrijeme = vozilo.getVrijeme();
-	                Instant vrijemeDostave = prijasnjeVrijeme.plusSeconds(vi*60);
-	                if(vrijemeDostave.isBefore(VirtualnoVrijeme.getVrijeme()) || vrijemeDostave.equals(VirtualnoVrijeme.getVrijeme())) {
 	                	vozilo.dostaviPakete();
-	            }
-	        }
+    		}
     	}
-	}
+    }
 
 
 
@@ -336,21 +333,12 @@ public class Main {
 
 	private static void provjeriPrijemPaketa(LocalDateTime prije, LocalDateTime poslije) {
 		for (Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
-			Subject subject = new Subject();
     		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
     		LocalDateTime dateTime = LocalDateTime.parse(paket.getVrijeme_prijema(), formatter);
     		if(dateTime.isBefore(poslije) && dateTime.isAfter(prije)) {
     			UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
-    			System.out.println("Paket: " + paket.getOznaka() + " je zaprimljen.");
-    			
-                //obavijestavanje
-                Pošiljatelj posiljatelj = new Pošiljatelj(paket.getPosiljatelj());
-                Primatelj primatelj = new Primatelj(paket.getPrimatelj());
-                
-                subject.attach(primatelj);
-                subject.attach(posiljatelj);
-                
-                subject.setPaket(paket);
+
+                paket.getOvajPaket().notifyObservers("zaprimljen");
     		}
 		}
 	}
@@ -402,10 +390,16 @@ public class Main {
 		    	if(paket.vratiPrimatelja().dobaviPodrucje() != null) {
 		    		
 		           if (vozilo.getPodrucjaPoRangu().contains(paket.vratiPrimatelja().dobaviPodrucje().getId())) {
+		        	   if(!vozilo.isTrenutno_vozi()) {
 		               // Load the package into the vehicle
 		               vozilo.ukrcajPakete(paket);
 		               iterator.remove();
 		               break;
+		        	   }
+		           }
+		           else {
+			    	   iterator.remove();
+			    	   break;
 		           }
 		       }else {
 		    	   iterator.remove();

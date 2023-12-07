@@ -59,6 +59,14 @@ public class Osoba implements CsvObjekt{
 		}
 		return null;
 	}
+	
+	public Ulica dobaviUlicuOveOsobe() {
+		for(Ulica ulica : Tvrtka.getInstance().getUlice()) {
+			if(ulica.getId() == this.ulica)
+				return ulica;
+		}
+		return null;
+	}
 
 	public void setUlica(int ulica) {
 		this.ulica = ulica;

@@ -36,18 +36,16 @@ public class AktivnoVozilo implements Stanje{
 
 	@Override
 	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
-
 	                double tezinaPaketa = paket.getTezina();
 	                double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
 	                if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getTrenutni_teret_volumen() <= vozilo.getKapacitet_m3())) {
 	                    vozilo.setTrenutni_teret_tezina(vozilo.getTrenutni_teret_tezina() + tezinaPaketa);
 	                    vozilo.setTrenutni_teret_volumen(vozilo.getTrenutni_teret_volumen() + volumenPaketa);
 	                    vozilo.dodajPaketUVozilo(paket);
-			            vozilo.dodajURed(paket);
 	                    builder.dodajUkrcanePakete(paket);
 	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + VirtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
 	                    UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
-	                    
+  
 	              }
 	          }
 
@@ -55,15 +53,15 @@ public class AktivnoVozilo implements Stanje{
 
 	@Override
 	public void dostaviPakete(Vozilo vozilo, int vi) {
-		if(Tvrtka.getInstance().getIsporuka() == 1) {
+		if(Tvrtka.getInstance().getIsporuka() == 2) {
 		   dostavaStrategija = new NajblizaDostava();
 		   dostavaStrategija.odrediRedoslijed(vozilo, builder);
 		}
-		else if(Tvrtka.getInstance().getIsporuka() == 2) {
+		else if(Tvrtka.getInstance().getIsporuka() == 1) {
 		   dostavaStrategija = new RedoslijedUkrcavanja();
 		   dostavaStrategija.odrediRedoslijed(vozilo, builder);
 		}
-		
+        
 	}
 
 	@Override

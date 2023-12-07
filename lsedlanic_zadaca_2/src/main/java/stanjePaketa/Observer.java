@@ -3,5 +3,6 @@ package stanjePaketa;
 import objekti.Paket;
 
 public interface Observer {
-	   void update(Paket paket);
+	   void paketZaprimljen(Paket paket);
+	   void paketDostavljen(Paket paket);
 	}

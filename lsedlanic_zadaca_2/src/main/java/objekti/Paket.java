@@ -7,6 +7,9 @@ import java.util.List;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
+import stanjePaketa.Pošiljatelj;
+import stanjePaketa.Primatelj;
+import stanjePaketa.Subject;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaPrijem;
 
@@ -24,6 +27,10 @@ public class Paket implements CsvObjekt{
     private double iznos_pouzeca;
     private double izracunati_iznos_dostave;
     private String vrijeme_preuzimanja;
+   
+    private Pošiljatelj posiljateljObserver;
+    private Primatelj primateljObserver;
+    private Subject ovajPaket;
 
     
 
@@ -51,6 +58,31 @@ public class Paket implements CsvObjekt{
 	   }
 
 	
+	
+	public Subject getOvajPaket() {
+		return ovajPaket;
+	}
+
+	public void setOvajPaket(Subject ovajPaket) {
+		this.ovajPaket = ovajPaket;
+	}
+
+	public Pošiljatelj getPosiljateljObserver() {
+		return posiljateljObserver;
+	}
+
+	public void setPosiljateljObserver(Pošiljatelj posiljateljObserver) {
+		this.posiljateljObserver = posiljateljObserver;
+	}
+
+	public Primatelj getPrimateljObserver() {
+		return primateljObserver;
+	}
+
+	public void setPrimateljObserver(Primatelj primateljObserver) {
+		this.primateljObserver = primateljObserver;
+	}
+
 	public double getIzracunati_iznos_dostave() {
 		return izracunati_iznos_dostave;
 	}
@@ -138,6 +170,15 @@ public class Paket implements CsvObjekt{
         this.setVrijeme_prijema(vrijednosti[1]);
         this.setPosiljatelj(vrijednosti[2]);
         this.setPrimatelj(vrijednosti[3]);
+        
+        this.setOvajPaket(new Subject());
+        
+        this.setPosiljateljObserver(new Pošiljatelj(this.posiljatelj));
+        this.setPrimateljObserver(new Primatelj(this.primatelj));
+        getOvajPaket().attach(posiljateljObserver);
+        getOvajPaket().attach(primateljObserver);
+        getOvajPaket().setPaket(this);
+        
         this.setVrsta_paketa(vrijednosti[4]);
         
         if(vrijednosti[4].equals("X")) {
@@ -172,6 +213,14 @@ public class Paket implements CsvObjekt{
 	public Osoba vratiPrimatelja() {
 		for(Osoba osoba: Tvrtka.getInstance().getOsobe()) {
 			if(osoba.getOsoba().equals(this.getPrimatelj()))
+				return osoba;
+		}
+		return null;
+	}
+	
+	public Osoba vratiPosiljatelja() {
+		for(Osoba osoba: Tvrtka.getInstance().getOsobe()) {
+			if(osoba.getOsoba().equals(this.getPosiljatelj()))
 				return osoba;
 		}
 		return null;

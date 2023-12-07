@@ -17,14 +17,16 @@ public class Subject {
 	       observers.remove(observer);
 	   }
 
-	   public void notifyObservers() {
+	   public void notifyObservers(String poruka) {
 	       for (Observer observer : observers) {
-	           observer.update(paket);
+	    	   if(poruka.equals("zaprimljen"))
+	    		   observer.paketZaprimljen(paket);
+	    	   else if(poruka.equals("dostavljen"))
+	    		   observer.paketDostavljen(paket);
 	       }
 	   }
 
 	   public void setPaket(Paket paket) {
 	       this.paket = paket;
-	       notifyObservers();
 	   }
 }

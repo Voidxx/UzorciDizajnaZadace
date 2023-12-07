@@ -10,9 +10,12 @@ public class Primatelj implements Observer{
 	   }
 
 	   @Override
-	   public void update(Paket paket) {
-	      if (paket.getVrijeme_preuzimanja() != null) {
-	          System.out.println("Receiver " + receiverName + " received a package: " + paket.getOznaka() + " has been delivered.");
-	      }
+	   public void paketZaprimljen(Paket paket) {
+		    	  System.out.println(receiverName + ", paket je zaprimljen u tvrtku.");
+	   }
+	   
+	   @Override
+	   public void paketDostavljen(Paket paket) {
+		    	  System.out.println(receiverName + ", paket: " + paket.getOznaka() + " Vam je dostavljen. Uživajte!");
 	   }
 }
