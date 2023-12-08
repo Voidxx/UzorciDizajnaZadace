@@ -17,6 +17,7 @@ public class VoznjaBuilder {
 	  private double postotakZauzecaProstoraNaPocetkuVoznje;
 	  private double postotakZauzecaTezineNaPocetkuVoznje;
 	  private String trajanje;
+	  private List<SegmentVoznje> segmentiVoznje = new ArrayList<SegmentVoznje>();
 
 	  public VoznjaBuilder() {
 	      this.ukrcaniPaketi = new ArrayList<>();
@@ -52,6 +53,11 @@ public class VoznjaBuilder {
 	      return this;
 	  }
 	  
+	  public VoznjaBuilder dodajSegmentVoznje(SegmentVoznje segment) {
+		  this.segmentiVoznje.add(segment);
+		  return this;
+	  }
+	  
 	  public VoznjaBuilder postaviTrajanje() {
 		   DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss");
 		   LocalDateTime startTime = LocalDateTime.parse(vrijemePocetka, formatter);
@@ -62,6 +68,6 @@ public class VoznjaBuilder {
 	  }
 
 	  public Voznja build() {
-	      return new Voznja(ukrcaniPaketi, dostavljeniPaketi, vrijemePovratkaUUred, vrijemePocetka, ukupnoKmPrijedeno, postotakZauzecaProstoraNaPocetkuVoznje, postotakZauzecaTezineNaPocetkuVoznje, trajanje);
+	      return new Voznja(ukrcaniPaketi, dostavljeniPaketi, vrijemePovratkaUUred, vrijemePocetka, ukupnoKmPrijedeno, postotakZauzecaProstoraNaPocetkuVoznje, postotakZauzecaTezineNaPocetkuVoznje, trajanje, segmentiVoznje);
 	  }
 }

@@ -11,7 +11,7 @@ public class Primatelj implements Observer{
 
 	   @Override
 	   public void paketZaprimljen(Paket paket) {
-		    	  System.out.println(receiverName + ", paket je zaprimljen u tvrtku.");
+		    	  System.out.println(receiverName + ", paket: " + paket.getOznaka() + " je zaprimljen u tvrtku.");
 	   }
 	   
 	   @Override

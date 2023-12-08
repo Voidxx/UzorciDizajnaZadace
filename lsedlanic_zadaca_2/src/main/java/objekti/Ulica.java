@@ -32,6 +32,11 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 		this.najv_kucni_broj = najv_kucni_broj;
 	}
 	
+	@Override
+    public int getIndentationLevel() {
+        return 2;
+    }
+	
 	public double[] izračunajGpsKoordinate(int kbr) {
 		   double lat1 = this.gps_lat_1;
 		   double lon1 = this.gps_lon_1;

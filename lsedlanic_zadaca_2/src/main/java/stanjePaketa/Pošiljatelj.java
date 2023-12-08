@@ -11,7 +11,7 @@ public class Pošiljatelj implements Observer{
 
 	   @Override
 	   public void paketZaprimljen(Paket paket) {
-		    	  System.out.println(senderName + ", paket je zaprimljen u tvrtku.");
+		    	  System.out.println(senderName + ", paket: " + paket.getOznaka() + "  je zaprimljen u tvrtku.");
 	   }
 	   
 	   @Override

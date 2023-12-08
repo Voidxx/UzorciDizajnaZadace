@@ -19,6 +19,7 @@ import java.util.Set;
 import citaci.CitacTxt;
 import citaci.CsvLoader;
 import citaci.CsvLoaderFactory;
+import objekti.DioPodrucja;
 import objekti.Mjesto;
 import objekti.Osoba;
 import objekti.Paket;
@@ -29,11 +30,21 @@ import objekti.Ulica;
 import objekti.Vozilo;
 import objekti.VrstaPaketa;
 import stanjaVozila.AktivnoVozilo;
+import stanjaVozila.NeaktivnoVozilo;
+import stanjaVozila.NeispravnoVozilo;
+import stanjePaketa.Pošiljatelj;
+import stanjePaketa.Primatelj;
+import stanjePaketa.Subject;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
+import visitori.SegmentVoznjeVisitor;
+import visitori.SegmentVoznjeVisitorImpl;
+import visitori.VoziloVisitor;
+import visitori.VoziloVisitorImpl;
 import visitori.VoznjaVisitor;
 import visitori.VoznjaVisitorImpl;
+import voznja.SegmentVoznje;
 import voznja.Voznja;
 import voznja.VoznjaBuilder;
 
@@ -64,8 +75,69 @@ public class Main {
         provjeraParametara.provjeriParametre(parametri);
         
         odrediUlazneVarijable(parametri);
+        ucitajPodatke();
+
+        VirtualnoVrijeme.getInstance();
+        VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
         
-        CsvLoader<VrstaPaketa> vrstePaketaLoader = (CsvLoader<VrstaPaketa>) CsvLoaderFactory.getLoader("vrstePaketa");
+        postaviStatusVozila();   
+		   
+		
+		
+        Scanner scanner = new Scanner(System.in);
+        String unos;
+        while (true) {
+            System.out.println("Unesite komandu:");
+            unos = scanner.nextLine().toUpperCase();
+            if ("Q".equals(unos)) {
+                System.out.println("Izlazim iz programa...");
+                break;
+            } else if (unos.startsWith("IP")) {
+                hendlajIPKomandu();
+            } else if (unos.startsWith("VR")) {
+                hendlajVRKomandu(unos);        
+            }
+              else if (unos.startsWith("VV")){
+            	  HendlajVVKomandu(unos);
+            }
+              else if (unos.startsWith("SV")) {
+            	  HendlajSVKomandu();
+              }
+              else if (unos.startsWith("VS")) {
+            	  HendlajVSKomandu(unos);
+              }
+              else if (unos.startsWith("PP")) {
+            	  HendlajPPKomandu();
+              }
+              else if (unos.startsWith("PS")) {
+            	  hendlajPSKomandu(unos);
+              }
+              else if (unos.startsWith("PO")) {
+            	  HendlajPOKomandu(unos);
+              }
+              else {
+                System.out.println("Nevažeća komanda");
+            }
+        }
+        scanner.close();
+    }
+
+	private static void postaviStatusVozila() {
+		String[] gpsKoordinateUredaString = gps.trim().split(",");
+           double latitudaUreda = Double.parseDouble(gpsKoordinateUredaString[0]);
+           double longitudaUreda = Double.parseDouble(gpsKoordinateUredaString[1]);
+           
+		   for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+			   vozilo.setTrenutniLon(longitudaUreda);
+			   vozilo.setTrenutniLat(latitudaUreda);
+			   if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
+				   vozilo.setState(new AktivnoVozilo());
+			   } 
+		   }
+	}
+
+	private static void ucitajPodatke() throws IOException, ParseException {
+		CsvLoader<VrstaPaketa> vrstePaketaLoader = (CsvLoader<VrstaPaketa>) CsvLoaderFactory.getLoader("vrstePaketa");
         List<VrstaPaketa> vrstePaketa = vrstePaketaLoader.loadCsv(vp);
         UredZaPrijem.getInstance().postaviVrstePaketa(vrstePaketa);
         CsvLoader<Vozilo> voziloLoader = (CsvLoader<Vozilo>) CsvLoaderFactory.getLoader("vozila");
@@ -87,44 +159,101 @@ public class Main {
         CsvLoader<Podrucje> podrucjaLoader = (CsvLoader<Podrucje>) CsvLoaderFactory.getLoader("podrucja");
         List<Podrucje> podrucja = podrucjaLoader.loadCsv(pmu);
         Tvrtka.getInstance().setPodrucja(podrucja);
+	}
 
-        VirtualnoVrijeme.getInstance();
-        VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
-           String[] gpsKoordinateUredaString = gps.trim().split(",");
-           double latitudaUreda = Double.parseDouble(gpsKoordinateUredaString[0]);
-           double longitudaUreda = Double.parseDouble(gpsKoordinateUredaString[1]);
-           
+    private static void HendlajPOKomandu(String unos) {
+    	String[] dijelovi = unos.split(" ");
+    	String posiljateljIliPrimatelj = dijelovi[1];
+    	String oznakaPaketa = dijelovi[2];
+    	String status = dijelovi[3];
+    	
+    	for(Paket paket : UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu()) {
+    		Subject subject = paket.getOvajPaket();
+    		if(status.equals("N")) {
+	    		if(paket.vratiPosiljatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
+	    			Pošiljatelj posiljatelj = paket.getPosiljateljObserver();
+	    			subject.detach(posiljatelj);
+	    		}
+	    		else if(paket.vratiPrimatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
+	    			Primatelj primatelj = paket.getPrimateljObserver();
+	    			subject.detach(primatelj);
+	    		}
+    		}
+    		else if(status.equals("D")) {
+        		if(paket.vratiPosiljatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
+        			Pošiljatelj posiljatelj = paket.getPosiljateljObserver();
+        			subject.attach(posiljatelj);
+        		}
+        		else if(paket.vratiPrimatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
+        			Primatelj primatelj = paket.getPrimateljObserver();
+        			subject.attach(primatelj);
+        		}
+    		}
+    	}
+    	
+
+    	}
+    
+    
+    private static void HendlajPPKomandu() {
+    	  for (Podrucje podrucje : Tvrtka.getInstance().getPodrucja()) {
+    	      System.out.println(podrucje.getId());
+    	      Set<Mjesto> printedMjesta = new HashSet<>();
+    	      for (DioPodrucja dioPodrucja : podrucje.getChildren()) {
+    	          if (dioPodrucja instanceof Mjesto) {
+    	              Mjesto mjesto = (Mjesto) dioPodrucja;
+    	              if (!printedMjesta.contains(mjesto) && mjesto.getNaziv() != null) {
+    	                System.out.println("    " + mjesto.getNaziv());
+    	                printedMjesta.add(mjesto);
+    	              }
+    	          } else if(dioPodrucja instanceof Ulica) {
+    	              Ulica ulica = (Ulica) dioPodrucja;
+    	              System.out.println("          " + ulica.getNaziv());
+    	          }
+    	      }
+    	  }
+    	}
+
+	private static void HendlajSVKomandu() {
+		   System.out.printf("%-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s%n", "Status", "Ukupno odvoženo km", "Broj hitnih paketa", "Broj običnih paketa", "Broj isporučenih paketa", "% zauzeća prostora", "% zauzeća težine,", "broj vožnji");
+
+		   VoziloVisitor visitor = new VoziloVisitorImpl();
 		   for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-			   vozilo.setTrenutniLon(longitudaUreda);
-			   vozilo.setTrenutniLat(latitudaUreda);
-			   if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
-				   vozilo.setState(new AktivnoVozilo());
-			   } 
-		   }   
-		   
-		provjeriStatusLagera();
-        Scanner scanner = new Scanner(System.in);
-        String unos;
-        while (true) {
-            System.out.println("Unesite komandu:");
-            unos = scanner.nextLine().toUpperCase();
-            if ("Q".equals(unos)) {
-                System.out.println("Izlazim iz programa...");
-                break;
-            } else if (unos.startsWith("IP")) {
-                hendlajIPKomandu();
-            } else if (unos.startsWith("VR")) {
-                hendlajVRKomandu(unos);        
-            }
-              else if (unos.startsWith("VV")){
-            	  HendlajVVKomandu(unos);
-            }
-              else {
-                System.out.println("Nevažeća komanda");
-            }
-        }
-        scanner.close();
-    }
+		       vozilo.accept(visitor);
+		   }
+	}
+	
+
+	
+	private static void HendlajVSKomandu(String unos) {
+		   String[] parts = unos.split(" ");
+		   if (parts.length > 1) {
+			   System.out.println(parts[0] + " " +  parts[1] + " " + parts[2]);
+		       String voziloRegistracija = parts[1];
+		       int brojVoznje = Integer.parseInt(parts[2]);
+		       Vozilo vozilo = UredZaDostavu.getInstance().dohvatiVozilo(voziloRegistracija);
+			   System.out.printf("%-20s %-20s %-20s %-20s %-20s %-20s %-20s%n", 
+				       "Vrijeme početka", 
+				       "Vrijeme kraja", 
+				       "Udaljenost (km)", 
+				       "Trajanje vožnje", 
+				       "Trajanje isporuke", 
+				       "Ukupno trajanje segmenta", 
+				       "Paket za dostaviti");
+		       if (vozilo != null) {
+		           SegmentVoznjeVisitor visitor = new SegmentVoznjeVisitorImpl();
+		           
+		           for (SegmentVoznje segmentVoznje : vozilo.getObavljeneVoznje().get(brojVoznje - 1).getSegmentiVoznje()) {
+		        	   
+		               segmentVoznje.accept(visitor);
+		           }
+		       } else {
+		           System.out.println("Vozilo s registracijom " + voziloRegistracija + " ne postoji.");
+		       }
+		   } else {
+		       System.out.println("Nevažeća komanda.");
+		   }
+		}
 
 
 
@@ -144,6 +273,7 @@ public class Main {
 
 
 	private static void hendlajVRKomandu(String unos) {
+		provjeriStatusLagera();
 		System.out.println("VR komanda dobivena");
 		String[] parts = unos.split(" ");
 		if (parts.length > 1) {
@@ -228,16 +358,33 @@ public class Main {
 		provjeriPrijemPaketa(vrijemePrije, vrijemeNakon);;
 	}
 
-
+	private static void hendlajPSKomandu(String unos) {
+			String[] parts = unos.split(" ");
+			String vehicleId = parts[1];
+			String status = parts[2];
+			
+			Vozilo vozilo = UredZaDostavu.getInstance().dohvatiVozilo(vehicleId);
+			if (vozilo != null) {
+			   if ("A".equals(status)) {
+			       vozilo.setState(new AktivnoVozilo());
+			   } else if ("NI".equals(status)) {
+			       vozilo.setState(new NeispravnoVozilo());
+			   } else if ("NA".equals(status)) {
+			       vozilo.setState(new NeaktivnoVozilo());
+			   }
+			} else {
+			   System.out.println("Vehicle with id " + vehicleId + " not found.");
+			}
+		}
 
 	private static void hendlajIPKomandu() {
 		System.out.println("IP komanda dobivena");
 
-		System.out.printf("%-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", "Vrijeme prijema", "Vrsta paketa", "Vrsta usluge", "Status isporuke", "Vrijeme preuzimanja", "Iznos dostave", "Iznos pouzeća");
+		System.out.printf("%-20s %-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", "Oznaka paketa" ,"Vrijeme prijema", "Vrsta paketa", "Vrsta usluge", "Status isporuke", "Vrijeme preuzimanja", "Iznos dostave", "Iznos pouzeća");
 
 		for (Paket paket : UredZaDostavu.getInstance().getDostavljeniPaketi()) {
 			
-		    System.out.printf("%-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", paket.getVrijeme_prijema(), paket.getVrsta_paketa(), paket.getUsluga_dostave(), "Dostavljeno", paket.getVrijeme_preuzimanja(), paket.getIzracunati_iznos_dostave(), paket.getIznos_pouzeca());
+		    System.out.printf("%-20s %-20s %-15s %-15s %-20s %-20s %-15s %-15s%n",paket.getOznaka(), paket.getVrijeme_prijema(), paket.getVrsta_paketa(), paket.getUsluga_dostave(), "Dostavljeno", paket.getVrijeme_preuzimanja(), paket.getIzracunati_iznos_dostave(), paket.getIznos_pouzeca());
 		}
 		Set<Paket> dostavljeniPaketiSet = new HashSet<>(UredZaDostavu.getInstance().getDostavljeniPaketi());
 		List<Paket> ocekivaniPaketi = UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa();
@@ -249,8 +396,8 @@ public class Main {
 			Instant instant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
 			LocalDateTime dateTimePocetka = LocalDateTime.parse(vs, formatter);
 			Instant instantPocetka = dateTimePocetka.atZone(ZoneId.systemDefault()).toInstant();
-			if(instant.isBefore(VirtualnoVrijeme.getVrijeme()) && instant.isAfter(instantPocetka))
-				System.out.printf("%-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", paket.getVrijeme_prijema(), paket.getVrsta_paketa(), paket.getUsluga_dostave(), "U preuzimanju", null,  paket.getIzracunati_iznos_dostave(), paket.getIznos_pouzeca());
+			if((instant.isBefore(VirtualnoVrijeme.getVrijeme()) && instant.isAfter(instantPocetka)) || instant.isBefore(VirtualnoVrijeme.getVrijeme()))
+				System.out.printf("%-20s %-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", paket.getOznaka(), paket.getVrijeme_prijema(), paket.getVrsta_paketa(), paket.getUsluga_dostave(), "U preuzimanju", null,  paket.getIzracunati_iznos_dostave(), paket.getIznos_pouzeca());
 		}
 	}
 
@@ -294,7 +441,7 @@ public class Main {
     
     private static void provjeriHoceLiBitiDostavljenPaket(int sekunde) {
     	for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-    		if(vozilo.isTrenutno_vozi() == true) {
+    		if(vozilo.isTrenutno_vozi() == true && vozilo.getStatus().equals("A")) {
 	                	vozilo.dostaviPakete();
     		}
     	}
@@ -345,75 +492,49 @@ public class Main {
 
 
     
-//	private static void ukrcajPakete() {
-//		   PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
-//	       for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-//		   while(iterator.hasNext()) {
-//		       Paket paket = iterator.next();
-//		           if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
-//		               vozilo.setState(new AktivnoVozilo());
-//		               vozilo.ukrcajPakete(paket);
-//		               iterator.remove();
-//		               break;
-//		           }
-//		       }
-//		   }
-//		}
-	
 	
 	private static void ukrcajPakete() {
-		   // Sort the list of packages by area id
 		   Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
 		       @Override
 		       public int compare(Paket p1, Paket p2) {
-		    	   if(p1.vratiPrimatelja() == null || p2.vratiPrimatelja() == null)
-		    		   return 0;
+		           if(p1.vratiPrimatelja() == null || p2.vratiPrimatelja() == null)
+		               return 0;
 
-		    		Osoba primatelj1 = p1.vratiPrimatelja();
-		    		Osoba primatelj2 = p2.vratiPrimatelja();
+		           Osoba primatelj1 = p1.vratiPrimatelja();
+		           Osoba primatelj2 = p2.vratiPrimatelja();
 
-		    		if(primatelj1.dobaviPodrucje() == null || primatelj2.dobaviPodrucje() == null)
-		    		   return 0;
+		           if(primatelj1.dobaviPodrucje() == null || primatelj2.dobaviPodrucje() == null)
+		               return 0;
 
-		    		return Integer.compare(primatelj1.dobaviPodrucje().getId(), primatelj2.dobaviPodrucje().getId());
+		           return Integer.compare(primatelj1.dobaviPodrucje().getId(), primatelj2.dobaviPodrucje().getId());
 		       }
 		   });
 
-  
-		   // Iterate over the sorted list of packages
 		   PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
 		   while(iterator.hasNext()) {
 		       Paket paket = iterator.next();
-		       // Find the first vehicle that has the same area id in its getPodrucjaPoRangu() method
+		       Vozilo bestVozilo = null;
+		       int bestRank = 4;
 		       for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-		    	if(paket.vratiPrimatelja() != null) {
-		    	if(paket.vratiPrimatelja().dobaviPodrucje() != null) {
-		    		
-		           if (vozilo.getPodrucjaPoRangu().contains(paket.vratiPrimatelja().dobaviPodrucje().getId())) {
-		        	   if(!vozilo.isTrenutno_vozi()) {
-		               // Load the package into the vehicle
-		               vozilo.ukrcajPakete(paket);
-		               iterator.remove();
-		               break;
-		        	   }
+		           if(paket.vratiPrimatelja() != null && paket.vratiPrimatelja().dobaviPodrucje() != null) {
+		               if (vozilo.getPodrucjaPoRangu().contains(paket.vratiPrimatelja().dobaviPodrucje().getId())) {
+		                  int rank = vozilo.getPodrucjaPoRangu().indexOf(paket.vratiPrimatelja().dobaviPodrucje().getId()) + 1;
+		                  if (bestVozilo == null || bestRank > rank) {
+		                      bestVozilo = vozilo;
+		                      bestRank = rank;
+		                  }
+		               }
 		           }
-		           else {
-			    	   iterator.remove();
-			    	   break;
-		           }
-		       }else {
-		    	   iterator.remove();
-		    	   break;
 		       }
-		    	
-		   }else {
-			   iterator.remove();
-			   break;
+		       if (bestVozilo != null && !bestVozilo.isTrenutno_vozi() && bestVozilo.getStatus().equals("A")) {
+		    	   bestVozilo.setState(new AktivnoVozilo());
+		           bestVozilo.ukrcajPakete(paket);
+		           iterator.remove();
+		       } else {
+		           iterator.remove();
+		       }
 		   }
 		}
-	}
-}
-
 }
 
 

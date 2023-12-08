@@ -1,5 +1,6 @@
 package voznja;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import objekti.Paket;
@@ -14,9 +15,23 @@ public class Voznja {
 	  private double postotakZauzecaProstoraNaPocetkuVoznje;
 	  private double postotakZauzecaTezineNaPocetkuVoznje;
 	  private String trajanje;
+	  private List<SegmentVoznje> segmentiVoznje = new ArrayList<SegmentVoznje>();
+
 	  
 	  
 	  
+	public List<SegmentVoznje> getSegmentiVoznje() {
+		return segmentiVoznje;
+	}
+
+
+
+	public void setSegmentiVoznje(List<SegmentVoznje> segmentiVoznje) {
+		this.segmentiVoznje = segmentiVoznje;
+	}
+
+
+
 	public List<Paket> getUkrcaniPaketi() {
 		return ukrcaniPaketi;
 	}
@@ -118,7 +133,7 @@ public class Voznja {
 
 	public Voznja(List<Paket> ukrcaniPaketi, List<Paket> dostavljeniPaketi, String vrijemePovratka,
 			String vrijemePocetka, double ukupnoKmPrijedeno, double postotakZauzecaProstoraNaPocetkuVoznje,
-			double postotakZauzecaTezineNaPocetkuVoznje, String trajanje) {
+			double postotakZauzecaTezineNaPocetkuVoznje, String trajanje, List<SegmentVoznje> segmentiVoznje) {
 		this.ukrcaniPaketi = ukrcaniPaketi;
 		this.dostavljeniPaketi = dostavljeniPaketi;
 		VrijemePovratka = vrijemePovratka;
@@ -127,6 +142,7 @@ public class Voznja {
 		this.postotakZauzecaProstoraNaPocetkuVoznje = postotakZauzecaProstoraNaPocetkuVoznje;
 		this.postotakZauzecaTezineNaPocetkuVoznje = postotakZauzecaTezineNaPocetkuVoznje;
 		this.trajanje = trajanje;
+		this.segmentiVoznje = segmentiVoznje;
 	}
 	  
 

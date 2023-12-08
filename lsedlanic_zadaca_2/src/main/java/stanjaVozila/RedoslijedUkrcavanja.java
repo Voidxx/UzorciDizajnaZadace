@@ -14,6 +14,7 @@ import objekti.Vozilo;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
+import voznja.SegmentVoznje;
 import voznja.VoznjaBuilder;
 
 public class RedoslijedUkrcavanja implements DostavaStrategija {
@@ -29,19 +30,26 @@ public class RedoslijedUkrcavanja implements DostavaStrategija {
     	         	   double dx = (gpsKoordinate[1] - vozilo.getTrenutniLon());
     	         	   double dy = (gpsKoordinate[0] - vozilo.getTrenutniLat());
     	        	   double udaljenost = Math.sqrt(dx * dx + dy * dy) * 111;
+ 	                  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
+ 	                  ZonedDateTime zdt1 = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
+ 	                  String formatiraniDateTime1 = zdt1.format(formatter);
+    	        	   
 	   	               Duration duration = Duration.ofMinutes(Tvrtka.getInstance().getVi() + ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)));
     	               Instant sada = vozilo.getDostavaSat().instant();
     	               Instant kasnije = sada.plus(duration);
     	               if(kasnije.isBefore(VirtualnoVrijeme.getVrijeme()) || kasnije.equals(VirtualnoVrijeme.getVrijeme())){
     	            	  vozilo.setDostavaSat(Clock.fixed(kasnije, ZoneId.systemDefault())); 
-    	                  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
-    	                  ZonedDateTime zdt = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
-    	                  String formatiraniDateTime = zdt.format(formatter);
-    	                                
+    	                  ZonedDateTime zdt2 = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
+    	                  String formatiraniDateTime2 = zdt2.format(formatter);
+    	                  double[] trenutneKoordinate = new double[] {vozilo.getTrenutniLon(), vozilo.getTrenutniLat()};
+    	                  SegmentVoznje segment = new SegmentVoznje(trenutneKoordinate, gpsKoordinate, udaljenost, formatiraniDateTime1, formatiraniDateTime2, ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)), Tvrtka.getInstance().getVi() , 0 , paket);
+    	                  builder.dodajSegmentVoznje(segment);
     	                  vozilo.setTrenutniLon(gpsKoordinate[1]);
     	                  vozilo.setTrenutniLat(gpsKoordinate[0]);
-    	                  System.out.println("Vozilo: " + vozilo.getOpis() + " je dostavilo paket: " + paket.getOznaka() + " Na vrijeme sata: " + formatiraniDateTime + " Trenutne koordinate: " + paket.vratiPrimatelja().dobaviUlicu(paket.vratiPrimatelja().getUlica()).getNaziv() + " KBR: " + paket.vratiPrimatelja().getKbr());
+    	                  System.out.println("Vozilo: " + vozilo.getOpis() + " je dostavilo paket: " + paket.getOznaka() + " Na vrijeme sata: " + formatiraniDateTime2 + " Trenutne koordinate: " + paket.vratiPrimatelja().dobaviUlicu(paket.vratiPrimatelja().getUlica()).getNaziv() + " KBR: " + paket.vratiPrimatelja().getKbr());
     	                  paket.getOvajPaket().notifyObservers("dostavljen");
+    	                  vozilo.dodajPaketUIsporucene();
+    	                  vozilo.dodajKmNaUkupno(udaljenost);
     	                  
     	                  paket.setVrijeme_preuzimanja(vozilo.getVrijemeDostaveDateTime());
     	                  UredZaDostavu.getInstance().dodajDostavljeniPaket(paket);

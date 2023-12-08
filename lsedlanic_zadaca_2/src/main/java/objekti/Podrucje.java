@@ -12,6 +12,10 @@ public class Podrucje implements CsvObjekt, DioPodrucja{
 	  private List<DioPodrucja> children = new ArrayList<>();
 
 
+	  @Override
+	    public int getIndentationLevel() {
+	        return 0; 
+	    }
 
 	  public int getId() {
 		return id;

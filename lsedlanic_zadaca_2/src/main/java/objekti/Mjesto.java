@@ -16,7 +16,10 @@ public class Mjesto implements CsvObjekt, DioPodrucja{
 
 	
 	
-
+	@Override
+    public int getIndentationLevel() {
+        return 1; 
+    }
 
 	public int getId() {
 		return id;

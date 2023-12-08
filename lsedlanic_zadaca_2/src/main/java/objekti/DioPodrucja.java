@@ -8,4 +8,5 @@ public interface DioPodrucja {
 	   DioPodrucja getChild(int index);
 	   int getNumChildren();
 	   List<DioPodrucja> getChildren();
+	   int getIndentationLevel();
 	}

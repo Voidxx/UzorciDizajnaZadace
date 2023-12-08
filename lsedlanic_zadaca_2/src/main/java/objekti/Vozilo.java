@@ -18,6 +18,7 @@ import stanjaVozila.NeaktivnoVozilo;
 import stanjaVozila.NeispravnoVozilo;
 import stanjaVozila.Stanje;
 import tvrtka.Tvrtka;
+import visitori.VoziloVisitor;
 import voznja.Voznja;
 
 public class Vozilo implements CsvObjekt {
@@ -39,6 +40,8 @@ public class Vozilo implements CsvObjekt {
     private List<Voznja> obavljeneVoznje = new ArrayList<Voznja>();
     private double trenutniLon;
     private double trenutniLat;
+    private int brojIsporucenihPaketa;
+    private double ukupnoKmPrijedeno;
  
 
 	
@@ -62,13 +65,48 @@ public class Vozilo implements CsvObjekt {
 		this.prosjecnaBrzina = prosjecnaBrzina;
 		this.status = status;
 		this.podrucjaPoRangu = podrucjaPoRangu;
+		this.ukupnoKmPrijedeno = 0;
 	}
 
-	private double izracunajVrijemeDostave(double udaljenost) {
-		double vrijeme = udaljenost / this.prosjecnaBrzina;
-		return 0;
-	}
 	
+	
+	
+	public double getUkupnoKmPrijedeno() {
+		return ukupnoKmPrijedeno;
+	}
+
+
+
+
+	public void setUkupnoKmPrijedeno(double ukupnoKmPrijedeno) {
+		this.ukupnoKmPrijedeno = ukupnoKmPrijedeno;
+	}
+
+	public void dodajKmNaUkupno(double km) {
+		this.ukupnoKmPrijedeno = this.ukupnoKmPrijedeno + km;
+	}
+
+
+
+	public int getBrojIsporucenihPaketa() {
+		return brojIsporucenihPaketa;
+	}
+
+	public void accept(VoziloVisitor visitor) {
+		   visitor.visit(this);
+		}
+
+
+	public void setBrojIsporucenihPaketa(int brojIsporucenihPaketa) {
+		this.brojIsporucenihPaketa = brojIsporucenihPaketa;
+	}
+
+
+
+
+	public void dodajPaketUIsporucene() {
+		brojIsporucenihPaketa++;
+	}
 
 	
     public double getTrenutniLon() {
