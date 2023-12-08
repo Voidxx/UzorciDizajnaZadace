@@ -1,12 +1,14 @@
 package tvrtka;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import objekti.Paket;
 import objekti.VrstaPaketa;
 
-public class UredZaPrijem {
+public class UredZaPrijem implements Serializable{
+	private static final long serialVersionUID = -866620078315786917L;
 	private static UredZaPrijem instance = null;
 	private List<VrstaPaketa> vrstePaketa = new ArrayList<VrstaPaketa>();
 	private List<Paket> ocekivaniPaketi = new ArrayList<Paket>();
@@ -23,6 +25,10 @@ public class UredZaPrijem {
         }
         return instance;
     }
+    
+	public static void setInstance(UredZaPrijem instance) {
+		UredZaPrijem.instance = instance;
+	}
 	
     public void postaviVrstePaketa(List<VrstaPaketa> vrstePaketa) {
     	this.vrstePaketa = vrstePaketa;

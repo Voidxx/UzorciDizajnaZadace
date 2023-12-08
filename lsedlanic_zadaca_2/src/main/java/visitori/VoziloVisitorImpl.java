@@ -12,6 +12,7 @@ public class VoziloVisitorImpl implements VoziloVisitor {
 	       double postotakKoristenjaProstora = vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_m3() * 100;
 	       double postotakKoristenjaTezine = vozilo.getTrenutni_teret_tezina() / vozilo.getKapacitet_kg() * 100;
 	       int brojVoznji = vozilo.getObavljeneVoznje().size();
+	       
 
 	       System.out.printf("%-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s%n",vozilo.getOpis(), vozilo.getStatus(), ukupnoKm, brojHitnihPaketa, brojNeHitnihPaketa, brojIsporucenihPaketa, postotakKoristenjaProstora, postotakKoristenjaTezine, brojVoznji);
 	   }

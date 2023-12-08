@@ -1,13 +1,15 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
 import tvrtka.Tvrtka;
 
-public class VrstaPaketa implements CsvObjekt {
-    private String oznaka;
+public class VrstaPaketa implements CsvObjekt, Serializable {
+    private static final long serialVersionUID = 8987011609684897096L;
+	private String oznaka;
     private String opis;
     private double visina;
     private double sirina;

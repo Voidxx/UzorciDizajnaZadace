@@ -1,5 +1,6 @@
 package voznja;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,7 +9,8 @@ import java.util.List;
 
 import objekti.Paket;
 
-public class VoznjaBuilder {
+public class VoznjaBuilder implements Serializable{
+	private static final long serialVersionUID = -437045076542615703L;
 	private List<Paket> ukrcaniPaketi;
 	  private List<Paket> dostavljeniPaketi;
 	  private String vrijemePovratkaUUred;
@@ -22,6 +24,11 @@ public class VoznjaBuilder {
 	  public VoznjaBuilder() {
 	      this.ukrcaniPaketi = new ArrayList<>();
 	      this.dostavljeniPaketi = new ArrayList<>();
+	  }
+	  
+	  public VoznjaBuilder dodajNaUkupnoKM(double km) {
+		  this.ukupnoKmPrijedeno = this.ukupnoKmPrijedeno + km;
+		  return this;
 	  }
 
 	  public VoznjaBuilder dodajUkrcanePakete(Paket paket) {

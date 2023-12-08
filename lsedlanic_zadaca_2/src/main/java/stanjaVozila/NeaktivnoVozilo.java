@@ -1,11 +1,15 @@
 package stanjaVozila;
 
+import java.io.Serializable;
+
 import objekti.Paket;
 import objekti.Vozilo;
 
-public class NeaktivnoVozilo implements Stanje{
+public class NeaktivnoVozilo implements Stanje, Serializable{
 
 
+
+	private static final long serialVersionUID = -513191394183632590L;
 
 	@Override
 	public void dostaviPakete(Vozilo vozilo, int vi) {

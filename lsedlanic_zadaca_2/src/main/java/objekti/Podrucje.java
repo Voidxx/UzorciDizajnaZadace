@@ -1,5 +1,6 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +8,9 @@ import java.util.List;
 import citaci.CsvObjekt;
 import tvrtka.Tvrtka;
 
-public class Podrucje implements CsvObjekt, DioPodrucja{
-	  private int id;
+public class Podrucje implements CsvObjekt, DioPodrucja, Serializable{
+	  private static final long serialVersionUID = -3161635571560797784L;
+	private int id;
 	  private List<DioPodrucja> children = new ArrayList<>();
 
 
@@ -75,12 +77,10 @@ public class Podrucje implements CsvObjekt, DioPodrucja{
 
 
 	        if ("*".equals(gradUlica[1])) {
-	            // Add all Ulica objects from the Mjesto object to the Podrucje object
 	            for (Ulica ulica : mjesto.getUlice()) {
 	                this.add(ulica);
 	            }
 	        } else {
-	            // Add the corresponding Ulica object from the Mjesto object to the Podrucje object
 	            Ulica ulica = mjesto.dobaviUlicu(Integer.parseInt(gradUlica[1]));
 	            if (ulica != null) {
 	                this.add(ulica);

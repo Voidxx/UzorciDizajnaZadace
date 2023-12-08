@@ -1,13 +1,15 @@
 package voznja;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import objekti.Paket;
 import visitori.VoznjaVisitor;
 
-public class Voznja {
-	  private List<Paket> ukrcaniPaketi;
+public class Voznja implements Serializable {
+	  private static final long serialVersionUID = 4166751526845134755L;
+	private List<Paket> ukrcaniPaketi;
 	  private List<Paket> dostavljeniPaketi;
 	  private String VrijemePovratka;
 	  private String vrijemePocetka;
@@ -88,6 +90,10 @@ public class Voznja {
 
 	public void setUkupnoKmPrijedeno(double ukupnoKmPrijedeno) {
 		this.ukupnoKmPrijedeno = ukupnoKmPrijedeno;
+	}
+	
+	public void dodajNaUkupnoKM(double km) {
+		this.ukupnoKmPrijedeno = this.ukupnoKmPrijedeno + km;
 	}
 
 

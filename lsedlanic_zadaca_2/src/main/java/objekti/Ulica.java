@@ -1,12 +1,14 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.List;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
 
-public class Ulica implements CsvObjekt, DioPodrucja{
+public class Ulica implements CsvObjekt, DioPodrucja, Serializable{
+	private static final long serialVersionUID = 3585610497698064932L;
 	private int id;
 	private String naziv;
 	private double gps_lat_1;
@@ -61,7 +63,6 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 		     PogreskeBrojac.getInstance().dodajPogresku(e.getMessage(), linija);
 		     return;
 		 }
-		 //potrebna dodatna validacjia
 		String[] vrijednosti = linija.split(";");
 		
 		this.setId(Integer.parseInt(vrijednosti[0]));
@@ -84,7 +85,6 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 		  String[] vrijednosti = linija.split(";");
 
 
-		  // Skip lines with less than seven fields
 		  if (vrijednosti.length < 7) {
 		      throw new ParseException("Redak sadrži " + vrijednosti.length + " vrijednosti, ali se očekuje 7 vrijednosti.", 0);
 		  }
@@ -94,6 +94,34 @@ public class Ulica implements CsvObjekt, DioPodrucja{
 		          throw new ParseException("Nepostojeće polje na indeksu: " + i, 0);
 		      }
 		  }
+		  
+
+		   try {
+		       Integer.parseInt(vrijednosti[0]);
+		   } catch (NumberFormatException e) {
+		       throw new ParseException("ID mora biti broj", 0);
+		   }
+
+		   try {
+		       Double.parseDouble(vrijednosti[2]);
+		       Double.parseDouble(vrijednosti[3]);
+		       Double.parseDouble(vrijednosti[4]);
+		       Double.parseDouble(vrijednosti[5]);
+			   if (Double.parseDouble(vrijednosti[2]) < -90 || Double.parseDouble(vrijednosti[2]) > 90 ||
+					   Double.parseDouble(vrijednosti[4]) < -90 || Double.parseDouble(vrijednosti[4]) > 90 ||
+					   Double.parseDouble(vrijednosti[3]) < -180 || Double.parseDouble(vrijednosti[3]) > 180 ||
+					   Double.parseDouble(vrijednosti[5]) < -180 || Double.parseDouble(vrijednosti[5]) > 180) {
+				       throw new ParseException("Nevažeće koordinate!", 0);
+				   }
+		   } catch (NumberFormatException e) {
+		       throw new ParseException("GPS koordinate moraju biti brojevi", 0);
+		   }
+
+		   try {
+		       Integer.parseInt(vrijednosti[6]);
+		   } catch (NumberFormatException e) {
+		       throw new ParseException("Highest house number must be a number", 0);
+		   }
 
 		}
 

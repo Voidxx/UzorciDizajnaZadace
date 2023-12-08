@@ -67,6 +67,8 @@ public class Main {
 	static String gps = null;
 	static int isporuka = 0;
 	
+
+	
     public static void main(String[] args) throws ParseException, IOException {
 
         CitacTxt parametriDatoteke = new CitacTxt();
@@ -78,7 +80,8 @@ public class Main {
         ucitajPodatke();
 
         VirtualnoVrijeme.getInstance();
-        VirtualnoVrijeme.inicijalizirajVirtualniSat(vs);
+        VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
+		virtualnoVrijeme.inicijalizirajVirtualniSat(vs);
         
         postaviStatusVozila();   
 		   
@@ -114,6 +117,12 @@ public class Main {
               }
               else if (unos.startsWith("PO")) {
             	  HendlajPOKomandu(unos);
+              }
+              else if (unos.startsWith("SS")) {
+            	  hendlajSSKomandu();
+              }
+              else if (unos.startsWith("LS")) {
+            	  hendlajLSKomandu();
               }
               else {
                 System.out.println("Nevažeća komanda");
@@ -160,6 +169,24 @@ public class Main {
         List<Podrucje> podrucja = podrucjaLoader.loadCsv(pmu);
         Tvrtka.getInstance().setPodrucja(podrucja);
 	}
+	
+	
+	private static void hendlajSSKomandu() {
+		   SystemState systemState = new SystemState(UredZaDostavu.getInstance(), UredZaPrijem.getInstance(), Tvrtka.getInstance(), PogreskeBrojac.getInstance(), VirtualnoVrijeme.getInstance());
+		   systemState.saveState("stanjeSustava.ser");
+		}
+
+		private static void hendlajLSKomandu() {
+		   SystemState systemState = SystemState.loadState("stanjeSustava.ser");
+		   if (systemState != null) {
+		       UredZaDostavu.setInstance(systemState.getUredZaDostavu());
+		       UredZaPrijem.setInstance(systemState.getUredZaPrijem());
+		       Tvrtka.setInstance(systemState.getTvrtka());
+		       PogreskeBrojac.setInstance(systemState.getPogreskeBrojac());
+			   VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
+		       virtualnoVrijeme.setInstance(systemState.getVirtualnoVrijeme());
+		   }
+		}
 
     private static void HendlajPOKomandu(String unos) {
     	String[] dijelovi = unos.split(" ");
@@ -215,7 +242,7 @@ public class Main {
     	}
 
 	private static void HendlajSVKomandu() {
-		   System.out.printf("%-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s%n", "Status", "Ukupno odvoženo km", "Broj hitnih paketa", "Broj običnih paketa", "Broj isporučenih paketa", "% zauzeća prostora", "% zauzeća težine,", "broj vožnji");
+		   System.out.printf("%-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s%n", "Oznaka vozila" , "Status", "Ukupno odvoženo km", "Broj hitnih paketa", "Broj običnih paketa", "Broj isporučenih paketa", "% zauzeća prostora", "% zauzeća težine,", "broj vožnji");
 
 		   VoziloVisitor visitor = new VoziloVisitorImpl();
 		   for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
@@ -258,24 +285,26 @@ public class Main {
 
 
 	private static void provjeriStatusLagera() {
-		for(Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
-    		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
-    		LocalDateTime dateTime = LocalDateTime.parse(paket.getVrijeme_prijema(), formatter);
-    		LocalDateTime pocetakRada = LocalDateTime.parse(vs, formatter);
-    		if(dateTime.isBefore(pocetakRada)) {
-    			UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
-
-                paket.getOvajPaket().notifyObservers("zaprimljen");
-                }
-		}
+		   if (!Tvrtka.getInstance().isProvjeriStatusLageraCalled()) {
+		       for(Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
+		           DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
+		           LocalDateTime dateTime = LocalDateTime.parse(paket.getVrijeme_prijema(), formatter);
+		           LocalDateTime pocetakRada = LocalDateTime.parse(vs, formatter);
+		           if(dateTime.isBefore(pocetakRada)) {
+		               UredZaPrijem.getInstance().dodajPaketUSpremneZaDostavu(paket);
+		               paket.getOvajPaket().notifyObservers("zaprimljen");
+		           }
+		       }
+		       Tvrtka.getInstance().setProvjeriStatusLageraCalled(true);
+		   }
 	}
 
 
 
 	private static void hendlajVRKomandu(String unos) {
-		provjeriStatusLagera();
 		System.out.println("VR komanda dobivena");
 		String[] parts = unos.split(" ");
+		VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
 		if (parts.length > 1) {
 		    try {
 		        int hours = Integer.parseInt(parts[1]);
@@ -285,16 +314,17 @@ public class Main {
 		            	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH);
 		            	LocalTime otvorenje = LocalTime.parse(pr, formatter);
 		            	LocalTime zatvaranje = LocalTime.parse(kr, formatter);
-
-		                Instant prijasnjeVrijeme = VirtualnoVrijeme.getVrijeme();
+		            	
+		                Instant prijasnjeVrijeme = virtualnoVrijeme.getVrijeme();
 		                LocalDateTime localDateTime = LocalDateTime.ofInstant(prijasnjeVrijeme, ZoneId.systemDefault());
 		                LocalTime lokalnoVirtualnoVrijeme = localDateTime.toLocalTime();
 		                
 		                if (lokalnoVirtualnoVrijeme.isBefore(otvorenje) || lokalnoVirtualnoVrijeme.isAfter(zatvaranje)) { 
-		                	System.out.println("Nije radno vrijeme..."); // provjeri za to
-		                	return;
+		                	System.out.println("Nije radno vrijeme...");
+		                	virtualnoVrijeme.nadodajVrijeme(ms);
+		                	System.out.println("Trenutno vrijeme virtualnog sata: " + virtualnoVrijeme.getVrijemeDateTime());  
 		                } else {
-		                
+		                provjeriStatusLagera();
 		                LocalDateTime vrijemePrije = LocalDateTime.ofInstant(prijasnjeVrijeme, ZoneId.systemDefault());
 		                LocalDateTime vrijemeNakon = vrijemePrije.plusSeconds(ms);
 		                
@@ -307,16 +337,15 @@ public class Main {
 		                	provjeriPakete(preostaleSekundeNakonPunogSata);
 		                	ukrcajPakete();
 		                	provjeriTrebajuLiKrenutiVozila();
-
-		                    
 		                }
 		                else {
-		                	System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
-		                	VirtualnoVrijeme.nadodajVrijeme(ms);
+		                	System.out.println("Trenutno vrijeme virtualnog sata: " + virtualnoVrijeme.getVrijemeDateTime());  
+		                	virtualnoVrijeme.nadodajVrijeme(ms);
 		                	provjeriHoceLiBitiDostavljenPaket(ms);
 		                	provjeriPrijemPaketa(vrijemePrije, vrijemeNakon);   
 		                	provjeriJeLiPunoVozilo();  	
 		                }
+
 		                }
 		            } catch (InterruptedException e) {
 		                e.printStackTrace();
@@ -348,13 +377,14 @@ public class Main {
 
 
 	private static void provjeriPakete(int sekundi) {
+		VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
 		LocalDateTime vrijemePrije;
 		LocalDateTime vrijemeNakon;
 		provjeriHoceLiBitiDostavljenPaket(sekundi);
-		vrijemePrije = LocalDateTime.ofInstant(VirtualnoVrijeme.getVrijeme(), ZoneId.systemDefault());
+		vrijemePrije = LocalDateTime.ofInstant(virtualnoVrijeme.getVrijeme(), ZoneId.systemDefault());
 		vrijemeNakon = vrijemePrije.plusSeconds(sekundi);
-		System.out.println("Trenutno vrijeme virtualnog sata: " + VirtualnoVrijeme.getVrijemeDateTime());  
-		VirtualnoVrijeme.nadodajVrijeme(sekundi);
+		System.out.println("Trenutno vrijeme virtualnog sata: " + virtualnoVrijeme.getVrijemeDateTime());  
+		virtualnoVrijeme.nadodajVrijeme(sekundi);
 		provjeriPrijemPaketa(vrijemePrije, vrijemeNakon);;
 	}
 
@@ -379,6 +409,7 @@ public class Main {
 
 	private static void hendlajIPKomandu() {
 		System.out.println("IP komanda dobivena");
+		VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
 
 		System.out.printf("%-20s %-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", "Oznaka paketa" ,"Vrijeme prijema", "Vrsta paketa", "Vrsta usluge", "Status isporuke", "Vrijeme preuzimanja", "Iznos dostave", "Iznos pouzeća");
 
@@ -396,7 +427,7 @@ public class Main {
 			Instant instant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
 			LocalDateTime dateTimePocetka = LocalDateTime.parse(vs, formatter);
 			Instant instantPocetka = dateTimePocetka.atZone(ZoneId.systemDefault()).toInstant();
-			if((instant.isBefore(VirtualnoVrijeme.getVrijeme()) && instant.isAfter(instantPocetka)) || instant.isBefore(VirtualnoVrijeme.getVrijeme()))
+			if((instant.isBefore(virtualnoVrijeme.getVrijeme()) && instant.isAfter(instantPocetka)) || instant.isBefore(virtualnoVrijeme.getVrijeme()))
 				System.out.printf("%-20s %-20s %-15s %-15s %-20s %-20s %-15s %-15s%n", paket.getOznaka(), paket.getVrijeme_prijema(), paket.getVrsta_paketa(), paket.getUsluga_dostave(), "U preuzimanju", null,  paket.getIzracunati_iznos_dostave(), paket.getIznos_pouzeca());
 		}
 	}
@@ -450,28 +481,32 @@ public class Main {
 
 
 	private static void provjeriTrebajuLiKrenutiVozila() {
+		VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
+
 		for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
 			if(!vozilo.isTrenutno_vozi() && vozilo.getStatus().equals("A")) {
 				if((vozilo.getTrenutni_teret_tezina() >= vozilo.getKapacitet_kg() / 2) || (vozilo.getTrenutni_teret_volumen() >= vozilo.getKapacitet_m3() / 2) || vozilo.getUkrcani_paketi().stream().anyMatch(paket -> paket.getUsluga_dostave().equals("H")) && vozilo.getUkrcani_paketi() != null) {
 					vozilo.setTrenutno_vozi(true);
 					AktivnoVozilo aktivnoVozilo = (AktivnoVozilo) vozilo.getState();
 					VoznjaBuilder builder = aktivnoVozilo.getBuilder();
-					builder.postaviVrijemePocetka(VirtualnoVrijeme.getVrijemeDateTime());
+					builder.postaviVrijemePocetka(virtualnoVrijeme.getVrijemeDateTime());
 					builder.postaviPostotakZauzecaProstora(vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_m3() * 100);
 					builder.postaviPostotakZauzecaTezine(vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_kg() * 100);
 					System.out.println("Vozilo: " + vozilo.getOpis() + " Kreće u dostavu!");
-					vozilo.setDostavaSat(VirtualnoVrijeme.getSat());
+					vozilo.setDostavaSat(virtualnoVrijeme.getSat());
 				}
 			}
 		}
 	}
 	
 	private static void provjeriJeLiPunoVozilo() {
+		VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
+
 		for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
 			if(vozilo.getTrenutni_teret_tezina() == vozilo.getKapacitet_kg() || vozilo.getTrenutni_teret_volumen() == vozilo.getKapacitet_m3() && !vozilo.isTrenutno_vozi()) {
 				vozilo.setTrenutno_vozi(true);
 				System.out.println("Vozilo: " + vozilo.getOpis() + " Kreće u dostavu!");
-				vozilo.setDostavaSat(VirtualnoVrijeme.getSat());
+				vozilo.setDostavaSat(virtualnoVrijeme.getSat());
 			}
 		}
 		

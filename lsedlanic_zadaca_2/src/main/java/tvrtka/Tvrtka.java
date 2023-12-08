@@ -1,5 +1,6 @@
 package tvrtka;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,8 +9,9 @@ import objekti.Osoba;
 import objekti.Podrucje;
 import objekti.Ulica;
 
-public class Tvrtka {
-    private static Tvrtka instance = null;
+public class Tvrtka implements Serializable{
+    private static final long serialVersionUID = -5354522489474329641L;
+	private static Tvrtka instance = null;
 	String vs = null;
 	int ms = 0;
 	String pr = null;
@@ -29,10 +31,19 @@ public class Tvrtka {
 	private List<Osoba> osobe = new ArrayList<Osoba>();
 	private List<Podrucje> podrucja = new ArrayList<Podrucje>();
 	private List<Mjesto> mjesta = new ArrayList<Mjesto>();
+	boolean isProvjeriStatusLageraCalled = false;
 	
 	
 
-    public String getPmu() {
+    public boolean isProvjeriStatusLageraCalled() {
+		return isProvjeriStatusLageraCalled;
+	}
+
+	public void setProvjeriStatusLageraCalled(boolean isProvjeriStatusLageraCalled) {
+		this.isProvjeriStatusLageraCalled = isProvjeriStatusLageraCalled;
+	}
+
+	public String getPmu() {
 		return pmu;
 	}
 

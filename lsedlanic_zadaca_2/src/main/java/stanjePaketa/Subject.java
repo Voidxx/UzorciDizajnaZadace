@@ -1,12 +1,14 @@
 package stanjePaketa;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import objekti.Paket;
 
-public class Subject {
-	   private List<Observer> observers = new ArrayList<>();
+public class Subject implements Serializable {
+	   private static final long serialVersionUID = 3391429024373667420L;
+	private List<Observer> observers = new ArrayList<>();
 	   private Paket paket;
 
 	   public void attach(Observer observer) {

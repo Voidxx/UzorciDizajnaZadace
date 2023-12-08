@@ -1,5 +1,6 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +9,8 @@ import app.PogreskeBrojac;
 import citaci.CsvObjekt;
 import tvrtka.Tvrtka;
 
-public class Mjesto implements CsvObjekt, DioPodrucja{
+public class Mjesto implements CsvObjekt, DioPodrucja, Serializable{
+	private static final long serialVersionUID = 1288863708856800208L;
 	private int id;
 	private String naziv;
 	private ArrayList<Integer> uliceUBrojevima = new ArrayList<Integer>();

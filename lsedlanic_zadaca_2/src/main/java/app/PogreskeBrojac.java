@@ -1,7 +1,9 @@
 package app;
 
+import java.io.Serializable;
 
-public class PogreskeBrojac {
+public class PogreskeBrojac implements Serializable{
+	private static final long serialVersionUID = 5235288177029674801L;
 	private static PogreskeBrojac instance = null;
 	private int brojac;
 
@@ -16,6 +18,10 @@ public class PogreskeBrojac {
         }
         return instance;
     }
+    
+	public static void setInstance(PogreskeBrojac instance) {
+		PogreskeBrojac.instance = instance;
+	}
     
     public void dodajPogresku(String opis, String sadrzaj) {
     	System.out.println("Pogreška " + brojac + ": \nRedak " + sadrzaj + "\nnije važeći jer " + opis);

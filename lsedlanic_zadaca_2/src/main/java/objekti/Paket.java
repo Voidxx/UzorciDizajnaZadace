@@ -1,5 +1,6 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -13,8 +14,9 @@ import stanjePaketa.Subject;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaPrijem;
 
-public class Paket implements CsvObjekt{
-    private String oznaka;
+public class Paket implements CsvObjekt, Serializable{
+    private static final long serialVersionUID = -5518609541347302989L;
+	private String oznaka;
     private String vrijeme_prijema;
     private String posiljatelj;
     private String primatelj;

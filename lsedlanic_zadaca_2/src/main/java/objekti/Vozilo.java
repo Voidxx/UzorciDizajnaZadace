@@ -1,5 +1,6 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
@@ -21,8 +22,9 @@ import tvrtka.Tvrtka;
 import visitori.VoziloVisitor;
 import voznja.Voznja;
 
-public class Vozilo implements CsvObjekt {
-    private String registracija;
+public class Vozilo implements CsvObjekt, Serializable {
+    private static final long serialVersionUID = 7209462325314152693L;
+	private String registracija;
     private String opis;
     private double kapacitet_kg;
     private double kapacitet_m3;

@@ -1,12 +1,14 @@
 package objekti;
 
+import java.io.Serializable;
 import java.text.ParseException;
 
 import app.PogreskeBrojac;
 import citaci.CsvObjekt;
 import tvrtka.Tvrtka;
 
-public class Osoba implements CsvObjekt{
+public class Osoba implements CsvObjekt, Serializable{
+	private static final long serialVersionUID = 6166809405709923461L;
 	private String osoba;
 	private int grad;
 	private int ulica;

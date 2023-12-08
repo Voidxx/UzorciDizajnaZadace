@@ -1,5 +1,6 @@
 package stanjaVozila;
 
+import java.io.Serializable;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -18,7 +19,8 @@ import voznja.SegmentVoznje;
 import voznja.Voznja;
 import voznja.VoznjaBuilder;
 
-public class AktivnoVozilo implements Stanje{
+public class AktivnoVozilo implements Stanje, Serializable{
+	private static final long serialVersionUID = 864820141663529933L;
 	private VoznjaBuilder builder = new VoznjaBuilder();
 	boolean jeLiOsobaPrimatelj = false;
 	Osoba primatelj = null;
@@ -45,6 +47,8 @@ public class AktivnoVozilo implements Stanje{
 
 	@Override
 	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
+					VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
+
 	                double tezinaPaketa = paket.getTezina();
 	                double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
 	                if ((tezinaPaketa + vozilo.getTrenutni_teret_tezina() <= vozilo.getKapacitet_kg() && volumenPaketa + vozilo.getTrenutni_teret_volumen() <= vozilo.getKapacitet_m3())) {
@@ -52,7 +56,7 @@ public class AktivnoVozilo implements Stanje{
 	                    vozilo.setTrenutni_teret_volumen(vozilo.getTrenutni_teret_volumen() + volumenPaketa);
 	                    vozilo.dodajPaketUVozilo(paket);
 	                    builder.dodajUkrcanePakete(paket);
-	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + VirtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
+	                    System.out.println("Dodan paket: " + paket.getOznaka() + " u vozilo: " + vozilo.getOpis() + " na vrijeme: " + virtualnoVrijeme.getVrijemeDateTime() + " - " + "Trenutni teret: KG " + vozilo.getTrenutni_teret_tezina() + " Volumen " + vozilo.getTrenutni_teret_volumen());
 	                    UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu().remove(paket);
   
 	              }
@@ -75,6 +79,7 @@ public class AktivnoVozilo implements Stanje{
 
 	@Override
 	public boolean vratiSeUUred(Vozilo vozilo) {
+	   VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
 	   String gpsKoordinateString[] = Tvrtka.getInstance().getGps().split(",");
  	   double[] gpsKoordinate = new double[] {0 , 0};
  	   int i = 0;
@@ -92,7 +97,7 @@ public class AktivnoVozilo implements Stanje{
           Duration duration = Duration.ofMinutes(Tvrtka.getInstance().getVi() + ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)));
        Instant sada = vozilo.getDostavaSat().instant();
        Instant kasnije = sada.plus(duration);
-       if(kasnije.isBefore(VirtualnoVrijeme.getVrijeme()) || kasnije.equals(VirtualnoVrijeme.getVrijeme())){
+       if(kasnije.isBefore(virtualnoVrijeme.getVrijeme()) || kasnije.equals(virtualnoVrijeme.getVrijeme())){
      	  vozilo.setDostavaSat(Clock.fixed(kasnije, ZoneId.systemDefault())); 
           ZonedDateTime zdt2 = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
           String formatiraniDateTime2 = zdt2.format(formatter);
@@ -103,6 +108,7 @@ public class AktivnoVozilo implements Stanje{
           vozilo.setTrenutniLat(gpsKoordinate[0]);
           
            vozilo.dodajKmNaUkupno(udaljenost);
+           builder.dodajNaUkupnoKM(udaljenost);
 	   	   builder.postaviVrijemePovratka(formatiraniDateTime2);
 	   	   builder.postaviTrajanje();
            vozilo.setDostavaSat(null);

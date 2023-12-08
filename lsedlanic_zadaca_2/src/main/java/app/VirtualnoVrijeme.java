@@ -1,5 +1,6 @@
 package app;
 
+import java.io.Serializable;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -8,10 +9,12 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-public class VirtualnoVrijeme{
+public class VirtualnoVrijeme implements Serializable{
 	
-    private static VirtualnoVrijeme instance = null;
-    private static Clock virtualniSat = null;
+
+	private static final long serialVersionUID = -2703718095521748531L;
+	private static VirtualnoVrijeme instance = null;
+    private  Clock virtualniSat = null;
 	
     private VirtualnoVrijeme() {
     	
@@ -23,26 +26,30 @@ public class VirtualnoVrijeme{
         }
         return instance;
     }
+    
+	public void setInstance(VirtualnoVrijeme instance) {
+		VirtualnoVrijeme.instance = instance;
+	}
 	
-    public static void inicijalizirajVirtualniSat(String vs) {
+    public void inicijalizirajVirtualniSat(String vs) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
 		LocalDateTime dateTime = LocalDateTime.parse(vs, formatter);
 		Instant instant = dateTime.atZone(ZoneId.systemDefault()).toInstant();
 		virtualniSat = Clock.fixed(instant, ZoneId.systemDefault());
     }
 
-    public static void nadodajVrijeme(int ms) {
+    public void nadodajVrijeme(int ms) {
         Instant sada = virtualniSat.instant();
         Instant kasnije = sada.plusSeconds(ms);
         virtualniSat = Clock.fixed(kasnije, ZoneId.systemDefault());
     }
     
-    public static Instant getVrijeme() {
+    public Instant getVrijeme() {
         Instant sada = virtualniSat.instant();
         return sada;
     }
     
-    public static String getVrijemeDateTime() {
+    public String getVrijemeDateTime() {
     	
     	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm:ss", Locale.ENGLISH);
     	Instant sada = virtualniSat.instant();
@@ -54,7 +61,7 @@ public class VirtualnoVrijeme{
         return formatiraniDateTime;
     }
     
-    public static Clock getSat() {
+    public Clock getSat() {
         return virtualniSat;
     }
     

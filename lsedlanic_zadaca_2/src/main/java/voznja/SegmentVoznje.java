@@ -1,9 +1,12 @@
 package voznja;
 
+import java.io.Serializable;
+
 import objekti.Paket;
 import visitori.SegmentVoznjeVisitor;
 
-public class SegmentVoznje {
+public class SegmentVoznje implements Serializable {
+	private static final long serialVersionUID = 2543677501758180611L;
 	private double[] odGPS;
 	private double[] doGPS;
 	private double udaljenostKM;

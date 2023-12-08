@@ -1,5 +1,6 @@
 package stanjaVozila;
 
+import java.io.Serializable;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -17,10 +18,13 @@ import tvrtka.UredZaPrijem;
 import voznja.SegmentVoznje;
 import voznja.VoznjaBuilder;
 
-public class RedoslijedUkrcavanja implements DostavaStrategija {
-	   @Override
+public class RedoslijedUkrcavanja implements DostavaStrategija, Serializable {
+	   private static final long serialVersionUID = -113283048340559364L;
+
+	@Override
 	   public void odrediRedoslijed(Vozilo vozilo, VoznjaBuilder builder) {
 		   boolean imaJosPaketaUVremenskomPeriodu = true;;
+		   VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
     	   while (imaJosPaketaUVremenskomPeriodu) {
     	       if (vozilo.getDostavaSat() != null) {
     	           int brojPaketa = vozilo.getUkrcani_paketi().size();
@@ -37,7 +41,7 @@ public class RedoslijedUkrcavanja implements DostavaStrategija {
 	   	               Duration duration = Duration.ofMinutes(Tvrtka.getInstance().getVi() + ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)));
     	               Instant sada = vozilo.getDostavaSat().instant();
     	               Instant kasnije = sada.plus(duration);
-    	               if(kasnije.isBefore(VirtualnoVrijeme.getVrijeme()) || kasnije.equals(VirtualnoVrijeme.getVrijeme())){
+    	               if(kasnije.isBefore(virtualnoVrijeme.getVrijeme()) || kasnije.equals(virtualnoVrijeme.getVrijeme())){
     	            	  vozilo.setDostavaSat(Clock.fixed(kasnije, ZoneId.systemDefault())); 
     	                  ZonedDateTime zdt2 = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
     	                  String formatiraniDateTime2 = zdt2.format(formatter);
@@ -50,12 +54,16 @@ public class RedoslijedUkrcavanja implements DostavaStrategija {
     	                  paket.getOvajPaket().notifyObservers("dostavljen");
     	                  vozilo.dodajPaketUIsporucene();
     	                  vozilo.dodajKmNaUkupno(udaljenost);
+    	                  builder.dodajNaUkupnoKM(udaljenost);
     	                  
     	                  paket.setVrijeme_preuzimanja(vozilo.getVrijemeDostaveDateTime());
     	                  UredZaDostavu.getInstance().dodajDostavljeniPaket(paket);
     	                  builder.dodajDostavljenePakete(paket);
     	                  UredZaPrijem.getInstance().nadodajNaUkupniIznosDostavu(paket.getIznos_pouzeca());
     	                  vozilo.setPrikupljeniNovac(vozilo.getPrikupljeniNovac() + paket.getIznos_pouzeca());
+  	                      vozilo.setTrenutni_teret_tezina(vozilo.getTrenutni_teret_tezina() - paket.getTezina());
+  		                  double volumenPaketa = paket.getVisina() * paket.getSirina() * paket.getDuzina();
+  	                      vozilo.setTrenutni_teret_volumen(vozilo.getTrenutni_teret_volumen() - volumenPaketa);
     	                  vozilo.getUkrcani_paketi().remove(paket);
     	               }
     	               else {
