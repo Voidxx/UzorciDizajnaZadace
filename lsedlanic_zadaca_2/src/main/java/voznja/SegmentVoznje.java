@@ -3,9 +3,10 @@ package voznja;
 import java.io.Serializable;
 
 import objekti.Paket;
-import visitori.SegmentVoznjeVisitor;
+import visitori.Host;
+import visitori.Visitor;
 
-public class SegmentVoznje implements Serializable {
+public class SegmentVoznje implements Serializable, Host {
 	private static final long serialVersionUID = 2543677501758180611L;
 	private double[] odGPS;
 	private double[] doGPS;
@@ -33,9 +34,10 @@ public class SegmentVoznje implements Serializable {
 		this.paketZaDostaviti = paketZaDostaviti;
 	}
 	
-	   public void accept(SegmentVoznjeVisitor visitor) {
-	       visitor.visit(this);
-	   }
+	@Override
+	 public void accept(Visitor visitor) {
+	     visitor.visitSegmentVoznje(this);
+	 }
 	
 	public String getVrijemeKraja() {
 		return vrijemeKraja;
@@ -50,6 +52,8 @@ public class SegmentVoznje implements Serializable {
 	public void izracunajTrajanjeSegmenta() {
 		this.ukupnoTrajanjeSegmenta = this.trajanjeVoznje + this.trajanjeIsporuke;
 	}
+	
+
 	
 	public int getUkupnoTrajanjeSegmenta() {
 		return ukupnoTrajanjeSegmenta;

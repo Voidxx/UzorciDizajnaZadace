@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import citaci.CitacTxt;
 import citaci.CsvLoader;
@@ -38,12 +40,8 @@ import stanjePaketa.Subject;
 import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
-import visitori.SegmentVoznjeVisitor;
-import visitori.SegmentVoznjeVisitorImpl;
-import visitori.VoziloVisitor;
-import visitori.VoziloVisitorImpl;
-import visitori.VoznjaVisitor;
-import visitori.VoznjaVisitorImpl;
+import visitori.Visitor;
+import visitori.VisitorImpl;
 import voznja.SegmentVoznje;
 import voznja.Voznja;
 import voznja.VoznjaBuilder;
@@ -91,37 +89,37 @@ public class Main {
         String unos;
         while (true) {
             System.out.println("Unesite komandu:");
-            unos = scanner.nextLine().toUpperCase();
+            unos = scanner.nextLine();
             if ("Q".equals(unos)) {
                 System.out.println("Izlazim iz programa...");
                 break;
-            } else if (unos.startsWith("IP")) {
+            } else if (Pattern.matches("^IP$", unos)) {
                 hendlajIPKomandu();
-            } else if (unos.startsWith("VR")) {
+            } else if (Pattern.matches("^VR\\s\\d+$", unos)) {
                 hendlajVRKomandu(unos);        
             }
-              else if (unos.startsWith("VV")){
+              else if (Pattern.matches("^VV\\s[A-Ža-ž0-9]+$", unos)){
             	  HendlajVVKomandu(unos);
             }
-              else if (unos.startsWith("SV")) {
+              else if (Pattern.matches("^SV$", unos)) {
             	  HendlajSVKomandu();
               }
-              else if (unos.startsWith("VS")) {
+              else if (Pattern.matches("^VS\\s[A-Ža-ž0-9]+\\s\\d+$", unos)) {
             	  HendlajVSKomandu(unos);
               }
-              else if (unos.startsWith("PP")) {
+              else if (Pattern.matches("^PP$", unos)) {
             	  HendlajPPKomandu();
               }
-              else if (unos.startsWith("PS")) {
+              else if (Pattern.matches("^PS\\s[A-Ža-ž0-9]+\\s(A|NI|NA)$", unos)) {
             	  hendlajPSKomandu(unos);
-              }
-              else if (unos.startsWith("PO")) {
+            }
+              else if (Pattern.matches("^PO\\s'.*\\s.*'\\s[A-Ža-ž0-9]+\\s(D|N)$", unos)) {
             	  HendlajPOKomandu(unos);
               }
-              else if (unos.startsWith("SS")) {
+              else if (Pattern.matches("^SS$", unos)) {
             	  hendlajSSKomandu();
               }
-              else if (unos.startsWith("LS")) {
+              else if (Pattern.matches("^LS$", unos)) {
             	  hendlajLSKomandu();
               }
               else {
@@ -140,7 +138,9 @@ public class Main {
 			   vozilo.setTrenutniLon(longitudaUreda);
 			   vozilo.setTrenutniLat(latitudaUreda);
 			   if(vozilo.isTrenutno_vozi() == false && vozilo.getStatus().equals("A")) {
-				   vozilo.setState(new AktivnoVozilo());
+				   AktivnoVozilo aktivnoVozilo = new AktivnoVozilo();
+				   vozilo.setState(aktivnoVozilo);
+				   vozilo.setAktivnoStanje(aktivnoVozilo);
 			   } 
 		   }
 	}
@@ -189,19 +189,35 @@ public class Main {
 		}
 
     private static void HendlajPOKomandu(String unos) {
-    	String[] dijelovi = unos.split(" ");
+    	String[] dijelovi = unos.split("'");
+    	String[] drugidijelovi = dijelovi[2].trim().split(" ");
+    	System.out.println(dijelovi[1] + drugidijelovi[0] +  drugidijelovi[1]);
     	String posiljateljIliPrimatelj = dijelovi[1];
-    	String oznakaPaketa = dijelovi[2];
-    	String status = dijelovi[3];
+    	String oznakaPaketa = drugidijelovi[0];
+    	String status = drugidijelovi[1];
     	
+    	List<Paket> listaPaketaZaProvjeru = new ArrayList<Paket>();
     	for(Paket paket : UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu()) {
+    		if(paket.vratiPosiljatelja() != null)
+    		listaPaketaZaProvjeru.add(paket);
+    	}
+    	for(Paket paket : UredZaPrijem.getInstance().dobaviListuOcekivanihPaketa()) {
+    	for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
+    		if(vozilo.getUkrcani_paketi().contains(paket) && paket.vratiPosiljatelja() != null) {
+    			listaPaketaZaProvjeru.add(paket);
+    		}
+    	}
+    	}
+    	
+    	
+    	for(Paket paket : listaPaketaZaProvjeru) {
     		Subject subject = paket.getOvajPaket();
     		if(status.equals("N")) {
 	    		if(paket.vratiPosiljatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
 	    			Pošiljatelj posiljatelj = paket.getPosiljateljObserver();
 	    			subject.detach(posiljatelj);
 	    		}
-	    		else if(paket.vratiPrimatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
+	    		if(paket.vratiPrimatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
 	    			Primatelj primatelj = paket.getPrimateljObserver();
 	    			subject.detach(primatelj);
 	    		}
@@ -211,12 +227,14 @@ public class Main {
         			Pošiljatelj posiljatelj = paket.getPosiljateljObserver();
         			subject.attach(posiljatelj);
         		}
-        		else if(paket.vratiPrimatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
+        		if(paket.vratiPrimatelja().getOsoba().equals(posiljateljIliPrimatelj) && oznakaPaketa.equals(paket.getOznaka())) {
         			Primatelj primatelj = paket.getPrimateljObserver();
         			subject.attach(primatelj);
         		}
     		}
     	}
+    	
+    	
     	
 
     	}
@@ -244,7 +262,7 @@ public class Main {
 	private static void HendlajSVKomandu() {
 		   System.out.printf("%-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s %-20s%n", "Oznaka vozila" , "Status", "Ukupno odvoženo km", "Broj hitnih paketa", "Broj običnih paketa", "Broj isporučenih paketa", "% zauzeća prostora", "% zauzeća težine,", "broj vožnji");
 
-		   VoziloVisitor visitor = new VoziloVisitorImpl();
+		   Visitor visitor = new VisitorImpl();
 		   for (Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
 		       vozilo.accept(visitor);
 		   }
@@ -268,8 +286,8 @@ public class Main {
 				       "Ukupno trajanje segmenta", 
 				       "Paket za dostaviti");
 		       if (vozilo != null) {
-		           SegmentVoznjeVisitor visitor = new SegmentVoznjeVisitorImpl();
-		           
+				   Visitor visitor = new VisitorImpl();
+		           if(vozilo.getObavljeneVoznje().get(brojVoznje - 1) != null)
 		           for (SegmentVoznje segmentVoznje : vozilo.getObavljeneVoznje().get(brojVoznje - 1).getSegmentiVoznje()) {
 		        	   
 		               segmentVoznje.accept(visitor);
@@ -337,13 +355,13 @@ public class Main {
 		                	provjeriPakete(preostaleSekundeNakonPunogSata);
 		                	ukrcajPakete();
 		                	provjeriTrebajuLiKrenutiVozila();
+		                	provjeriJeLiPunoVozilo();  	
 		                }
 		                else {
 		                	System.out.println("Trenutno vrijeme virtualnog sata: " + virtualnoVrijeme.getVrijemeDateTime());  
 		                	virtualnoVrijeme.nadodajVrijeme(ms);
 		                	provjeriHoceLiBitiDostavljenPaket(ms);
 		                	provjeriPrijemPaketa(vrijemePrije, vrijemeNakon);   
-		                	provjeriJeLiPunoVozilo();  	
 		                }
 
 		                }
@@ -363,7 +381,7 @@ public class Main {
 		       String registracija = parts[1];
 		       Vozilo vozilo = UredZaDostavu.getInstance().dohvatiVozilo(registracija);
 		       if (vozilo != null) {
-		           VoznjaVisitor visitor = new VoznjaVisitorImpl();
+				   Visitor visitor = new VisitorImpl();
 		           for (Voznja voznja : vozilo.getObavljeneVoznje()) {
 		               voznja.accept(visitor);
 		           }
@@ -396,14 +414,31 @@ public class Main {
 			Vozilo vozilo = UredZaDostavu.getInstance().dohvatiVozilo(vehicleId);
 			if (vozilo != null) {
 			   if ("A".equals(status)) {
-			       vozilo.setState(new AktivnoVozilo());
+				   if(vozilo.getState().mozeSePonovoAktivirati())
+					   vozilo.setState(vozilo.getAktivnoStanje());
+				   else
+					   System.out.println("Nemožete neispravno vozilo ponovno postaviti kao aktivno/neaktivno.");
 			   } else if ("NI".equals(status)) {
-			       vozilo.setState(new NeispravnoVozilo());
+				   if(vozilo.getNeispravnoStanje() == null) {
+				   NeispravnoVozilo neispravnoVozilo = new NeispravnoVozilo();
+			       vozilo.setState(neispravnoVozilo);
+			       vozilo.setNeispravnoStanje(neispravnoVozilo);
+				   }
+				   else {
+					   vozilo.setState(vozilo.getNeispravnoStanje());
+				   }
 			   } else if ("NA".equals(status)) {
-			       vozilo.setState(new NeaktivnoVozilo());
+				   if(vozilo.getNeaktivnoStanje() == null) {
+					   NeaktivnoVozilo neaktivnoVozilo = new NeaktivnoVozilo();
+					   vozilo.setState(neaktivnoVozilo);
+					   vozilo.setNeaktivnoStanje(neaktivnoVozilo);
+				   }
+				   else {
+					   vozilo.setState(vozilo.getNeaktivnoStanje());
+				   }
 			   }
 			} else {
-			   System.out.println("Vehicle with id " + vehicleId + " not found.");
+			   System.out.println("Nema vozila sa opisom  " + vehicleId + ".");
 			}
 		}
 
@@ -503,8 +538,13 @@ public class Main {
 		VirtualnoVrijeme virtualnoVrijeme = VirtualnoVrijeme.getInstance();
 
 		for(Vozilo vozilo : UredZaDostavu.getInstance().dohvatiListuVozila()) {
-			if(vozilo.getTrenutni_teret_tezina() == vozilo.getKapacitet_kg() || vozilo.getTrenutni_teret_volumen() == vozilo.getKapacitet_m3() && !vozilo.isTrenutno_vozi()) {
+			if(vozilo.getTrenutni_teret_tezina() == vozilo.getKapacitet_kg() || vozilo.getTrenutni_teret_volumen() == vozilo.getKapacitet_m3() && !vozilo.isTrenutno_vozi() && vozilo.getStatus().equals("A")) {
 				vozilo.setTrenutno_vozi(true);
+				AktivnoVozilo aktivnoVozilo = (AktivnoVozilo) vozilo.getState();
+				VoznjaBuilder builder = aktivnoVozilo.getBuilder();
+				builder.postaviVrijemePocetka(virtualnoVrijeme.getVrijemeDateTime());
+				builder.postaviPostotakZauzecaProstora(vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_m3() * 100);
+				builder.postaviPostotakZauzecaTezine(vozilo.getTrenutni_teret_volumen() / vozilo.getKapacitet_kg() * 100);
 				System.out.println("Vozilo: " + vozilo.getOpis() + " Kreće u dostavu!");
 				vozilo.setDostavaSat(virtualnoVrijeme.getSat());
 			}
@@ -529,21 +569,18 @@ public class Main {
     
 	
 	private static void ukrcajPakete() {
-		   Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
-		       @Override
-		       public int compare(Paket p1, Paket p2) {
-		           if(p1.vratiPrimatelja() == null || p2.vratiPrimatelja() == null)
-		               return 0;
-
-		           Osoba primatelj1 = p1.vratiPrimatelja();
-		           Osoba primatelj2 = p2.vratiPrimatelja();
-
-		           if(primatelj1.dobaviPodrucje() == null || primatelj2.dobaviPodrucje() == null)
-		               return 0;
-
-		           return Integer.compare(primatelj1.dobaviPodrucje().getId(), primatelj2.dobaviPodrucje().getId());
-		       }
-		   });
+	    Collections.sort(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu(), new Comparator<Paket>() {
+	        @Override
+	        public int compare(Paket p1, Paket p2) {
+	            if (p1.getUsluga_dostave().equals("H") && !p2.getUsluga_dostave().equals("H")) {
+	                return -1;
+	            } else if (!p1.getUsluga_dostave().equals("H") && p2.getUsluga_dostave().equals("H")) {
+	                return 1;
+	            } else {
+	                return 0;
+	            }
+	        }
+	    });
 
 		   PaketIterator iterator = new PaketIteratorImpl(UredZaPrijem.getInstance().dobaviListuPaketaZaDostavu());
 		   while(iterator.hasNext()) {
@@ -562,7 +599,6 @@ public class Main {
 		           }
 		       }
 		       if (bestVozilo != null && !bestVozilo.isTrenutno_vozi() && bestVozilo.getStatus().equals("A")) {
-		    	   bestVozilo.setState(new AktivnoVozilo());
 		           bestVozilo.ukrcajPakete(paket);
 		           iterator.remove();
 		       } else {

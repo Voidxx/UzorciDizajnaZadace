@@ -19,10 +19,11 @@ import stanjaVozila.NeaktivnoVozilo;
 import stanjaVozila.NeispravnoVozilo;
 import stanjaVozila.Stanje;
 import tvrtka.Tvrtka;
-import visitori.VoziloVisitor;
+import visitori.Host;
+import visitori.Visitor;
 import voznja.Voznja;
 
-public class Vozilo implements CsvObjekt, Serializable {
+public class Vozilo implements CsvObjekt, Serializable, Host {
     private static final long serialVersionUID = 7209462325314152693L;
 	private String registracija;
     private String opis;
@@ -44,7 +45,9 @@ public class Vozilo implements CsvObjekt, Serializable {
     private double trenutniLat;
     private int brojIsporucenihPaketa;
     private double ukupnoKmPrijedeno;
- 
+    private AktivnoVozilo aktivnoStanje;
+    private NeaktivnoVozilo neaktivnoStanje;
+    private NeispravnoVozilo neispravnoStanje;
 
 	
 	
@@ -73,6 +76,48 @@ public class Vozilo implements CsvObjekt, Serializable {
 	
 	
 	
+	public AktivnoVozilo getAktivnoStanje() {
+		return aktivnoStanje;
+	}
+
+
+
+
+	public void setAktivnoStanje(AktivnoVozilo aktivnoStanje) {
+		this.aktivnoStanje = aktivnoStanje;
+	}
+
+
+
+
+	public NeaktivnoVozilo getNeaktivnoStanje() {
+		return neaktivnoStanje;
+	}
+
+
+
+
+	public void setNeaktivnoStanje(NeaktivnoVozilo neaktivnoStanje) {
+		this.neaktivnoStanje = neaktivnoStanje;
+	}
+
+
+
+
+	public NeispravnoVozilo getNeispravnoStanje() {
+		return neispravnoStanje;
+	}
+
+
+
+
+	public void setNeispravnoStanje(NeispravnoVozilo neispravnoStanje) {
+		this.neispravnoStanje = neispravnoStanje;
+	}
+
+
+
+
 	public double getUkupnoKmPrijedeno() {
 		return ukupnoKmPrijedeno;
 	}
@@ -94,8 +139,9 @@ public class Vozilo implements CsvObjekt, Serializable {
 		return brojIsporucenihPaketa;
 	}
 
-	public void accept(VoziloVisitor visitor) {
-		   visitor.visit(this);
+	@Override
+	public void accept(Visitor visitor) {
+		   visitor.visitVozilo(this);
 		}
 
 

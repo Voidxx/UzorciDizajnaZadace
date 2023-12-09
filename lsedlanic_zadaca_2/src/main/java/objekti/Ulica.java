@@ -39,14 +39,32 @@ public class Ulica implements CsvObjekt, DioPodrucja, Serializable{
         return 2;
     }
 	
+	public double izračunajDuljinuUlice() {
+		 double lat1 = this.gps_lat_1;
+		 double lon1 = this.gps_lon_1;
+		 double lat2 = this.gps_lat_2;
+		 double lon2 = this.gps_lon_2;
+
+		 double d = Math.sqrt(Math.pow(lon2 - lon1, 2) + Math.pow(lat2 - lat1, 2));
+
+		 return d;
+		}
+	
 	public double[] izračunajGpsKoordinate(int kbr) {
+		   if (kbr > najv_kucni_broj) {
+		       kbr = najv_kucni_broj;
+		   }
+
 		   double lat1 = this.gps_lat_1;
 		   double lon1 = this.gps_lon_1;
 		   double lat2 = this.gps_lat_2;
 		   double lon2 = this.gps_lon_2;
 
-		   double lat = lat1 + ((kbr - 1) / (double) (najv_kucni_broj - 1)) * (lat2 - lat1);
-		   double lon = lon1 + ((kbr - 1) / (double) (najv_kucni_broj - 1)) * (lon2 - lon1);
+		   double d = izračunajDuljinuUlice();
+		   double a = (kbr - 1) / (double) (najv_kucni_broj - 1) * d;
+
+		   double lat = lat1 + a * Math.sin(Math.atan2(lat2 - lat1, lon2 - lon1));
+		   double lon = lon1 + a * Math.cos(Math.atan2(lat2 - lat1, lon2 - lon1));
 
 		   return new double[]{lat, lon};
 		}

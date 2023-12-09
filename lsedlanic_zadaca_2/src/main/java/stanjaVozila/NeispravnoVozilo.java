@@ -11,19 +11,28 @@ public class NeispravnoVozilo implements Stanje, Serializable{
 
 	@Override
 	public void ukrcajPakete(Vozilo vozilo, Paket paket) {
-		// TODO Auto-generated method stub
+		System.out.println("Vozilo je: " + vozilo.getOpis() + "  trenutno neispravno.");
 		
 	}
 
 	@Override
 	public void dostaviPakete(Vozilo vozilo, int vi) {
-		// TODO Auto-generated method stub
+		System.out.println("Vozilo je: " + vozilo.getOpis() + "  trenutno neispravno.");
 		
 	}
 
 	@Override
 	public boolean vratiSeUUred(Vozilo vozilo) {
+		System.out.println("Vozilo je: " + vozilo.getOpis() + "  trenutno neispravno.");
+
 		return false;
 	}
+
+	@Override
+	public boolean mozeSePonovoAktivirati() {
+		
+		return false;
+	}
+	
 
 }

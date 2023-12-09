@@ -94,7 +94,7 @@ public class AktivnoVozilo implements Stanje, Serializable{
         ZonedDateTime zdt1 = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
         String formatiraniDateTime1 = zdt1.format(formatter);
         
-          Duration duration = Duration.ofMinutes(Tvrtka.getInstance().getVi() + ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)));
+       Duration duration = Duration.ofSeconds(Tvrtka.getInstance().getVi()*60 + ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60*60)));
        Instant sada = vozilo.getDostavaSat().instant();
        Instant kasnije = sada.plus(duration);
        if(kasnije.isBefore(virtualnoVrijeme.getVrijeme()) || kasnije.equals(virtualnoVrijeme.getVrijeme())){
@@ -102,7 +102,8 @@ public class AktivnoVozilo implements Stanje, Serializable{
           ZonedDateTime zdt2 = vozilo.getDostavaSat().instant().atZone(ZoneId.systemDefault());
           String formatiraniDateTime2 = zdt2.format(formatter);
           double[] trenutneKoordinate = new double[] {vozilo.getTrenutniLon(), vozilo.getTrenutniLat()};
-          SegmentVoznje segment = new SegmentVoznje(trenutneKoordinate, gpsKoordinate, udaljenost, formatiraniDateTime1, formatiraniDateTime2, ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)), Tvrtka.getInstance().getVi() , 0 , null);
+          SegmentVoznje segment = new SegmentVoznje(trenutneKoordinate, gpsKoordinate, udaljenost, formatiraniDateTime1, formatiraniDateTime2, ((int) Math.round(udaljenost/vozilo.getProsjecnaBrzina()*60)), 0, 0, null);
+          segment.izracunajTrajanjeSegmenta();
           builder.dodajSegmentVoznje(segment);
           vozilo.setTrenutniLon(gpsKoordinate[1]);
           vozilo.setTrenutniLat(gpsKoordinate[0]);
@@ -123,5 +124,13 @@ public class AktivnoVozilo implements Stanje, Serializable{
         return false;
 		
 	}
+
+	@Override
+	public boolean mozeSePonovoAktivirati() {
+		System.out.println("Nemožete ponovo aktivirati već aktivirano vozilo!");
+		return false;
+	}
+
+
 
 }

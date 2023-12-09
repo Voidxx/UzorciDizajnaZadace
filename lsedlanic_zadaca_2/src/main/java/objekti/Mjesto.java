@@ -79,6 +79,7 @@ public class Mjesto implements CsvObjekt, DioPodrucja, Serializable{
 
 	@Override
 	public void process(String linija) throws ParseException {
+
 		 try {
 		     validate(linija);
 		 } catch (ParseException e) {
@@ -87,14 +88,14 @@ public class Mjesto implements CsvObjekt, DioPodrucja, Serializable{
 		 }
 		String[] vrijednosti = linija.split(";");
 		
-		this.setId(Integer.parseInt(vrijednosti[0]));
-		this.setNaziv(vrijednosti[1]);
+		this.setId(Integer.parseInt(vrijednosti[0].trim()));
+		this.setNaziv(vrijednosti[1].trim());
 		String[] uliceString = vrijednosti[2].split(",");
 		ArrayList<Integer> ulice = new ArrayList<Integer>();
 		for(String string: uliceString) {
-			ulice.add(Integer.parseInt(string));
+			ulice.add(Integer.parseInt(string.trim()));
 			for(Ulica ulica : Tvrtka.getInstance().getUlice()) {
-				if(Integer.parseInt(string) == ulica.getId()) {
+				if(Integer.parseInt(string.trim()) == ulica.getId()) {
 					this.dodajUlicu(ulica);
 				}
 			}	
@@ -137,18 +138,6 @@ public class Mjesto implements CsvObjekt, DioPodrucja, Serializable{
 		   this.setNaziv(vrijednosti[1].trim());
 		   
 
-		   String[] uliceString = vrijednosti[2].split(",");
-		   ArrayList<Integer> ulice = new ArrayList<Integer>();
-		   for(String string: uliceString) {
-		       if (string.trim().isEmpty()) {
-		           throw new ParseException("Nevažeča ulica", id);
-		       }
-		       if (!string.equals(string.trim())) {
-		           throw new ParseException("Nevažeča ulica", id);
-		       }
-		       ulice.add(Integer.parseInt(string.trim()));
-		   
-		}
 	}
 
 	 @Override

@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import objekti.Paket;
-import visitori.VoznjaVisitor;
+import visitori.Host;
+import visitori.Visitor;
 
-public class Voznja implements Serializable {
+public class Voznja implements Serializable, Host {
 	  private static final long serialVersionUID = 4166751526845134755L;
 	private List<Paket> ukrcaniPaketi;
 	  private List<Paket> dostavljeniPaketi;
@@ -132,9 +133,9 @@ public class Voznja implements Serializable {
 		this.trajanje = trajanje;
 	}
 
-
-	public void accept(VoznjaVisitor visitor) {
-	       visitor.visit(this);
+	@Override
+	public void accept(Visitor visitor) {
+	       visitor.visitVoznja(this);
 	   }
 
 	public Voznja(List<Paket> ukrcaniPaketi, List<Paket> dostavljeniPaketi, String vrijemePovratka,
