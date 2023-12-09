@@ -11,8 +11,9 @@ import tvrtka.Tvrtka;
 import tvrtka.UredZaDostavu;
 import tvrtka.UredZaPrijem;
 
-public class SystemState implements Serializable {
-	   private UredZaDostavu uredZaDostavu;
+public class SystemState implements Serializable, SystemStateInterface {
+	   private static final long serialVersionUID = -3264959896283747800L;
+	private UredZaDostavu uredZaDostavu;
 	   private UredZaPrijem uredZaPrijem;
 	   private Tvrtka tvrtka;
 	   private PogreskeBrojac pogreskeBrojac;
@@ -26,6 +27,7 @@ public class SystemState implements Serializable {
 	       this.virtualnoVrijeme = virtualnoVrijeme;
 	   }
 
+	   @Override
 	   public void saveState(String filename) {
 	       try {
 	           FileOutputStream fileOut = new FileOutputStream(filename);
@@ -39,7 +41,8 @@ public class SystemState implements Serializable {
 	       }
 	   }
 
-	   public static SystemState loadState(String filename) {
+	   @Override
+	   public SystemState loadState(String filename) {
 	       try {
 	           FileInputStream fileIn = new FileInputStream(filename);
 	           ObjectInputStream in = new ObjectInputStream(fileIn);

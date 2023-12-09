@@ -177,7 +177,8 @@ public class Main {
 		}
 
 		private static void hendlajLSKomandu() {
-		   SystemState systemState = SystemState.loadState("stanjeSustava.ser");
+		   SystemStateProxy systemStateProxy = new SystemStateProxy();
+		   SystemState systemState = systemStateProxy.loadState("stanjeSustava.ser");
 		   if (systemState != null) {
 		       UredZaDostavu.setInstance(systemState.getUredZaDostavu());
 		       UredZaPrijem.setInstance(systemState.getUredZaPrijem());
