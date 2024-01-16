@@ -1,7 +1,9 @@
 package tvrtka;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import objekti.Mjesto;
 import objekti.Osoba;
@@ -30,10 +32,18 @@ public class Tvrtka{
 	private List<Podrucje> podrucja = new ArrayList<Podrucje>();
 	private List<Mjesto> mjesta = new ArrayList<Mjesto>();
 	boolean isProvjeriStatusLageraCalled = false;
-	
+	private Map<String, Map<String, Object>> savedStates = new HashMap<>();
 	
 
-    public boolean isProvjeriStatusLageraCalled() {
+    public Map<String, Map<String, Object>> getSavedStates() {
+		return savedStates;
+	}
+
+	public void setSavedStates(Map<String, Map<String, Object>> savedStates) {
+		this.savedStates = savedStates;
+	}
+
+	public boolean isProvjeriStatusLageraCalled() {
 		return isProvjeriStatusLageraCalled;
 	}
 
