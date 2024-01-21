@@ -59,10 +59,8 @@ public class Main {
         
         postaviStatusVozila();   
 		   
-		
-		
 
-        CommandHandler ipHandler = new IPHandler();
+        CommandHandler ipHandler = new SortirajPoTeziniDecorator(new IPHandler());
         CommandHandler vrHandler = new VRHandler();
         CommandHandler vvHandler = new VVHandler();
         CommandHandler svHandler = new SVHandler();
@@ -76,7 +74,7 @@ public class Main {
         CommandHandler ppvHandler = new PPVHandler();
         CommandHandler qHandler = new QHandler();
         CommandHandler nepostojecaKomandaHandler = new NepostojecaKomandaHandler();
-        
+
         ipHandler.setNext(vrHandler);
         vrHandler.setNext(vvHandler);
         vvHandler.setNext(svHandler);
@@ -97,7 +95,7 @@ public class Main {
             System.out.println("Unesite komandu:");
             unos = scanner.nextLine();
             try {
-            ipHandler.provjeriKomandu(unos);
+            	ipHandler.provjeriKomandu(unos);
             }
             catch(Exception e){
             	System.out.println(e.getMessage());
