@@ -194,19 +194,7 @@ gps= 46.305433, 16.336646
 
 isporuka=2 
 
-Provjeru  ispravnosti  upisanih  argumenata/opcija  koji  su  definirani  u  1.  zadaći  treba refaktorirati tako da se obavlja u jednoj klasi na bazi metode kojoj se šalje argument tipa String u koji se prenose svi primljeni argumenti/opcije. Zatim se dodaje nova klasa za provjeru upisanih parametara koja sadrži metodu kojoj se šalje argument tipa Properties u koji se prenose svi parametri iz datoteka parametara. Metoda koristi objekt gornje klase za provjeru parametara koji su bili definirani u 1. zadaći tako da poziva njegovu metodu za provjeru. A zatim sama provjerava novo dodane parametre u 2. zadaći. 
 
-Redoslijed  podataka  je  proizvoljan  tako  da  treba  voditi  brigu  kod  obrade  primljenih podataka. Vrijednosti za parametara su proizvoljne tako da će tijekom prezentacije zadaća biti neke druge, a treće kod testiranja i bodovanja zadaća. Nazivi datoteka mogu biti drugačiji nego što su ovdje prikazani. 
 
-Za izvršavanje programa prvo je potrebno postaviti da je važeći direktorij/mapa onaj na kojem se nalaze podaci (npr.: cd /home/UzDiz/DZ\_3/podaci). To će biti mjesto s kojeg se izvršava program tako da nazivi datoteka s podacima ne smiju sadržavati putanju. Zbog toga se kod izvršavanja  programa  mora  nalaziti  putanja  do  njegove  izvršne  verzije  (npr.:  /home/UzDiz/DZ\_3/dkermek\_zadaca\_3/target/dkermek\_zadaca\_3.jar). 
-
-- java -jar /home/UzDiz/DZ\_3/dkermek\_zadaca\_3/target/dkermek\_zadaca\_3.jar  DZ\_3\_parametri.txt 
-
-  U  ishodišnom  direktoriju  projekta  treba  priložiti  datoteku  dokumentacije {LDAP\_korisničko\_ime}\_zadaca\_3.pdf  kako  je  opisano  u  dokumentima  „Preporuke  u  vezi zadaća“ i „Opći model ocjenjivanja zadaća“.  
-
-  **Napomena**:  Preporučuje  se  refaktoriranje  postojećeg  rješenja  2.  zadaće  kako  bi  se  mogli iskoristiti uzorci dizajna koji su obrađeni nakon 2. zadaće. Ne smiju se koristiti ugrađene osobine odabranog programskog jezika za realizaciju funkcionalnosti pojedinih uzoraka dizajna. Ne smiju se koristite dodatne biblioteke/knjižnice klasa. 
-
-  Metode u klasama NE smiju imati više od **30 linija programskog koda**, u što se ne broji definiranje metode, njenih argumenata i lokalnih varijabli. U jednoj liniji može biti jedna instrukcija. Linija ne može imati **više od 120 znaka**. Ne broji se linija u kojoj je samo vitičasta zagrada ili je prazna linija. Ne broje se linije u kojima se nalazi komentar osim u slučaju da se u komentaru nalazi programski kod. 
-10 
 
 [^1]: Zbog blizine adresa i jednostavnosti izračuna, karta se promatra kao ravna ploha/ravnina (tako da za izračun nije potrebno uključiti zaobljenost Zemlje.), ulica kao linija između dvije točke, a svi kućni brojevi imaju istu širinu i ravnomjerno su raspoređeni na obje strane ulice. Kućni broj 1 nalazi se na GPS koordinati početka ulice, a najveći kućni broj nalazi se na GPS koordinata kraja ulice. Duljina ulice izračunava se kao udaljenost između dviju točaka u ravnini. Djeljenjem kućnog broja adrese paketa i najvećeg kućnog broja u ulici dobije se % s kojim se množi duljina ulice kako bi se dobila udaljenost adrese paketa od početka ulice. U slučaju da je kućni broj paketa veći od najvećeg kućnog broja u ulici tada se za izračun uzima najveći kućni broj u ulici. Sada je još potrebno tu udaljenost pretvoriti u GPS koordinate. Za to se primjenjuje trigonometrija pravokutnog trokuta. 
