@@ -1,3 +1,7 @@
+## Opširni projekt sa naglaskom na uzorke dizajna u Javi koji riješava problem dostave paketa po područjima
+
+
+
 ` `**Predmet: Uzorci dizajna
 
 ` `**Akademska godina: 2023./2024.**
